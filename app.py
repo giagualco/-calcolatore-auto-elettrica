@@ -10,11 +10,13 @@ veicoli = {
         "Fiat Panda 1.2": {"prezzo": 15000, "consumo": 5.7},
         "Volkswagen Golf 1.5": {"prezzo": 25000, "consumo": 6.0},
         "Ford Focus 1.0": {"prezzo": 22000, "consumo": 5.5},
+        "Porsche Macan": {"prezzo": 70000, "consumo": 10.5},
     },
     "Auto Elettriche": {
         "Renault Zoe": {"prezzo": 30000, "consumo": 17.2},
         "Nissan Leaf": {"prezzo": 35000, "consumo": 15.0},
         "Tesla Model 3": {"prezzo": 50000, "consumo": 14.0},
+        "BMW i4": {"prezzo": 60000, "consumo": 16.5},
     },
 }
 
@@ -42,56 +44,68 @@ def get_prezzo_energia():
 prezzo_benzina = get_prezzo_benzina()
 prezzo_energia = get_prezzo_energia()
 
-st.sidebar.header("Selezione del veicolo")
-tipo_veicolo = st.sidebar.selectbox("Seleziona il tipo di veicolo", options=["Auto Termiche", "Auto Elettriche"])
-modello = st.sidebar.selectbox("Seleziona il modello", options=list(veicoli[tipo_veicolo].keys()))
+st.sidebar.header("Selezione del veicolo termico")
+modello_termico = st.sidebar.selectbox("Seleziona il modello termico", options=list(veicoli["Auto Termiche"].keys()))
+
+st.sidebar.header("Selezione del veicolo elettrico")
+modello_elettrico = st.sidebar.selectbox("Seleziona il modello elettrico", options=list(veicoli["Auto Elettriche"].keys()))
 
 # Recupero dei dati del veicolo selezionato
-dati_veicolo = veicoli[tipo_veicolo][modello]
-prezzo = dati_veicolo["prezzo"]
-consumo = dati_veicolo["consumo"]
+dati_termico = veicoli["Auto Termiche"][modello_termico]
+dati_elettrico = veicoli["Auto Elettriche"][modello_elettrico]
 
-st.sidebar.write(f"**Prezzo d'acquisto:** €{prezzo}")
-st.sidebar.write(f"**Consumo medio:** {consumo} {'L/100km' if tipo_veicolo == 'Auto Termiche' else 'kWh/100km'}")
+prezzo_termico = dati_termico["prezzo"]
+consumo_termico = dati_termico["consumo"]
+
+prezzo_elettrico = dati_elettrico["prezzo"]
+consumo_elettrico = dati_elettrico["consumo"]
+
+st.sidebar.write(f"**{modello_termico}** - Prezzo: €{prezzo_termico}, Consumo: {consumo_termico} L/100km")
+st.sidebar.write(f"**{modello_elettrico}** - Prezzo: €{prezzo_elettrico}, Consumo: {consumo_elettrico} kWh/100km")
 
 # Dati generali
 km_annui = st.number_input("Chilometraggio annuo (km)", value=15000)
 anni_possesso = st.number_input("Durata del possesso (anni)", value=5)
 
-st.write(f"**Prezzo medio benzina:** €{prezzo_benzina}/L")
-st.write(f"**Prezzo medio energia elettrica:** €{prezzo_energia}/kWh")
+# Prezzi carburante ed energia modificabili dall'utente
+st.sidebar.header("Prezzi Energia e Carburanti")
+prezzo_benzina = st.sidebar.number_input("Prezzo benzina (€/L)", value=prezzo_benzina, format="%.2f")
+prezzo_energia = st.sidebar.number_input("Prezzo energia elettrica (€/kWh)", value=prezzo_energia, format="%.2f")
+
+st.write(f"**Prezzo medio benzina:** €{prezzo_benzina}/L (Modificabile)")
+st.write(f"**Prezzo medio energia elettrica:** €{prezzo_energia}/kWh (Modificabile)")
 
 # Calcoli dei costi totali
 costo_totale_termica = (
-    prezzo
-    + ((km_annui / 100) * consumo * prezzo_benzina * anni_possesso)
+    prezzo_termico
+    + ((km_annui / 100) * consumo_termico * prezzo_benzina * anni_possesso)
 )
 
 costo_totale_elettrica = (
-    prezzo
-    + ((km_annui / 100) * consumo * prezzo_energia * anni_possesso)
+    prezzo_elettrico
+    + ((km_annui / 100) * consumo_elettrico * prezzo_energia * anni_possesso)
 )
 
 # Visualizzazione dei risultati
 st.subheader("Risultati del confronto")
-st.write(f"**Costo totale auto termica:** €{costo_totale_termica:,.2f}")
-st.write(f"**Costo totale auto elettrica:** €{costo_totale_elettrica:,.2f}")
+st.write(f"**Costo totale {modello_termico} (termico):** €{costo_totale_termica:,.2f}")
+st.write(f"**Costo totale {modello_elettrico} (elettrico):** €{costo_totale_elettrica:,.2f}")
 
 if costo_totale_elettrica < costo_totale_termica:
-    st.success("L'auto elettrica è più conveniente! ✅")
+    st.success(f"L'auto elettrica ({modello_elettrico}) è più conveniente! ✅")
 else:
-    st.warning("L'auto termica è più conveniente! 🔥")
+    st.warning(f"L'auto termica ({modello_termico}) è più conveniente! 🔥")
 
 # Grafico comparativo
 anni = list(range(1, anni_possesso + 1))
 costi_termica = [
-    prezzo + ((km_annui / 100) * consumo * prezzo_benzina * i)
+    prezzo_termico + ((km_annui / 100) * consumo_termico * prezzo_benzina * i)
     for i in anni
 ]
 costi_elettrica = [
-    prezzo + ((km_annui / 100) * consumo * prezzo_energia * i)
+    prezzo_elettrico + ((km_annui / 100) * consumo_elettrico * prezzo_energia * i)
     for i in anni
 ]
 
-df = pd.DataFrame({"Anno": anni, "Auto Termica (€)": costi_termica, "Auto Elettrica (€)": costi_elettrica})
+df = pd.DataFrame({"Anno": anni, f"{modello_termico} (€)": costi_termica, f"{modello_elettrico} (€)": costi_elettrica})
 st.line_chart(df.set_index("Anno"))
