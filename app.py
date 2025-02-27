@@ -1,37 +1,75 @@
 import streamlit as st
+import requests
 import pandas as pd
-import matplotlib.pyplot as plt
 
 st.title("Confronto Auto Elettrica vs Termica 🚗⚡")
 
-# Input dell'utente
-st.sidebar.header("Dati auto termica")
-prezzo_termica = st.sidebar.number_input("Prezzo d'acquisto (€)", value=25000)
-consumo_termica = st.sidebar.number_input("Consumo carburante (L/100km)", value=6.5)
-costo_carburante = st.sidebar.number_input("Costo carburante (€/L)", value=1.9)
-manutenzione_termica = st.sidebar.number_input("Manutenzione annua (€)", value=500)
+# Dizionario dei veicoli con i loro dati
+veicoli = {
+    "Auto Termiche": {
+        "Fiat Panda 1.2": {"prezzo": 15000, "consumo": 5.7},
+        "Volkswagen Golf 1.5": {"prezzo": 25000, "consumo": 6.0},
+        "Ford Focus 1.0": {"prezzo": 22000, "consumo": 5.5},
+    },
+    "Auto Elettriche": {
+        "Renault Zoe": {"prezzo": 30000, "consumo": 17.2},
+        "Nissan Leaf": {"prezzo": 35000, "consumo": 15.0},
+        "Tesla Model 3": {"prezzo": 50000, "consumo": 14.0},
+    },
+}
 
-st.sidebar.header("Dati auto elettrica")
-prezzo_elettrica = st.sidebar.number_input("Prezzo d'acquisto (€)", value=35000)
-consumo_elettrica = st.sidebar.number_input("Consumo energia (kWh/100km)", value=15)
-costo_energia = st.sidebar.number_input("Costo energia (€/kWh)", value=0.25)
-manutenzione_elettrica = st.sidebar.number_input("Manutenzione annua (€)", value=200)
+# Funzione per ottenere il prezzo medio della benzina
+def get_prezzo_benzina():
+    try:
+        url = "https://www.mimit.gov.it/it/prezzo-medio-carburanti/regioni"
+        response = requests.get(url)
+        prezzo_benzina = 1.75  # Prezzo di esempio, da aggiornare con parsing effettivo
+        return prezzo_benzina
+    except:
+        return 1.75  # Valore di fallback
+
+# Funzione per ottenere il prezzo medio dell'energia elettrica
+def get_prezzo_energia():
+    try:
+        url = "https://www.arera.it/area-operatori/prezzi-e-tariffe"
+        response = requests.get(url)
+        prezzo_energia = 0.22  # Prezzo di esempio, da aggiornare con parsing effettivo
+        return prezzo_energia
+    except:
+        return 0.22  # Valore di fallback
+
+# Ottenere i prezzi aggiornati
+prezzo_benzina = get_prezzo_benzina()
+prezzo_energia = get_prezzo_energia()
+
+st.sidebar.header("Selezione del veicolo")
+tipo_veicolo = st.sidebar.selectbox("Seleziona il tipo di veicolo", options=["Auto Termiche", "Auto Elettriche"])
+modello = st.sidebar.selectbox("Seleziona il modello", options=list(veicoli[tipo_veicolo].keys()))
+
+# Recupero dei dati del veicolo selezionato
+dati_veicolo = veicoli[tipo_veicolo][modello]
+prezzo = dati_veicolo["prezzo"]
+consumo = dati_veicolo["consumo"]
+
+st.sidebar.write(f"**Prezzo d'acquisto:** €{prezzo}")
+st.sidebar.write(f"**Consumo medio:** {consumo} {'L/100km' if tipo_veicolo == 'Auto Termiche' else 'kWh/100km'}")
 
 # Dati generali
 km_annui = st.number_input("Chilometraggio annuo (km)", value=15000)
 anni_possesso = st.number_input("Durata del possesso (anni)", value=5)
 
+st.write(f"**Prezzo medio benzina:** €{prezzo_benzina}/L")
+st.write(f"**Prezzo medio energia elettrica:** €{prezzo_energia}/kWh")
+
 # Calcoli dei costi totali
 costo_totale_termica = (
-    prezzo_termica
-    + ((km_annui / 100) * consumo_termica * costo_carburante * anni_possesso)
-    + (manutenzione_termica * anni_possesso)
+    prezzo
+    + ((km_annui / 100) * consumo * prezzo_benzina * anni_possesso)
 )
 
 costo_totale_elettrica = (
-    prezzo_elettrica
-    + ((km_annui / 100) * consumo_elettrica * costo_energia * anni_possesso)
-    + (manutenzione_elettrica * anni_possesso)
+    prezzo
+    + ((km_annui / 100) * consumo * prezzo_energia * anni_possesso)
 )
 
 # Visualizzazione dei risultati
@@ -47,11 +85,11 @@ else:
 # Grafico comparativo
 anni = list(range(1, anni_possesso + 1))
 costi_termica = [
-    prezzo_termica + ((km_annui / 100) * consumo_termica * costo_carburante * i) + (manutenzione_termica * i)
+    prezzo + ((km_annui / 100) * consumo * prezzo_benzina * i)
     for i in anni
 ]
 costi_elettrica = [
-    prezzo_elettrica + ((km_annui / 100) * consumo_elettrica * costo_energia * i) + (manutenzione_elettrica * i)
+    prezzo + ((km_annui / 100) * consumo * prezzo_energia * i)
     for i in anni
 ]
 
