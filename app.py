@@ -5,49 +5,62 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Configurazione della pagina
-st.set_page_config(page_title="Confronto Auto Elettrica vs Termica", page_icon="🚗", layout="wide")
+st.set_page_config(
+    page_title="Confronto Auto Elettrica vs Termica",
+    page_icon="🚗",
+    layout="wide"
+)
 
 # =============================
-# Funzione per generare CSS minimale
+# CSS ad alto contrasto per forzare sfondo bianco e testo scuro
 # =============================
 def get_css():
     """
-    Restituisce un blocco CSS semplice con colori ad alto contrasto
-    per garantire la massima leggibilità.
+    Forza lo sfondo a bianco e il testo a nero/grigio scuro,
+    sovrascrivendo il tema di Streamlit (anche se è in Dark Mode).
     """
     css = """
     <style>
-    .stApp {
-        background-color: #FFFFFF; /* Sfondo bianco */
+    /* Forza background bianco e testo scuro su tutto l'app */
+    html, body, [class*="css"]  {
+        background-color: #FFFFFF !important;
+        color: #333333 !important;
     }
+    /* Titoli e sottotitoli */
+    h1, h2, h3, h4, h5, h6 {
+        color: #2C3E50 !important; /* Blu scuro */
+        font-weight: bold !important;
+    }
+    /* Classi personalizzate */
     .stTitle {
-        color: #2C3E50; /* Blu scuro */
-        font-size: 32px;
-        font-weight: bold;
+        color: #2C3E50 !important;
+        font-size: 32px !important;
+        font-weight: bold !important;
         margin-bottom: 20px;
     }
     .stSubtitle {
-        color: #34495E; /* Blu medio */
-        font-size: 24px;
-        font-weight: bold;
+        color: #34495E !important;
+        font-size: 24px !important;
+        font-weight: bold !important;
         margin-bottom: 15px;
     }
     .stText {
-        color: #333333; /* Testo scuro */
-        font-size: 18px;
-        line-height: 1.6;
+        color: #333333 !important;
+        font-size: 18px !important;
+        line-height: 1.6 !important;
     }
+    /* Link YouTube fisso in alto a sinistra */
     .youtube-link {
         position: fixed;
         top: 10px;
         left: 10px;
         color: #FF0000 !important; /* Rosso YouTube */
-        font-size: 16px;
-        font-weight: bold;
-        text-decoration: none;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        text-decoration: none !important;
     }
     .youtube-link:hover {
-        text-decoration: underline;
+        text-decoration: underline !important;
     }
     </style>
     """
@@ -235,4 +248,7 @@ ax2.spines['right'].set_visible(False)
 st.pyplot(fig2)
 
 # Messaggio finale
-st.markdown('<p class="stText">⚡ <strong>Scegli la soluzione più efficiente e sostenibile!</strong> 🚀</p>', unsafe_allow_html=True)
+st.markdown(
+    '<p class="stText">⚡ <strong>Scegli la soluzione più efficiente e sostenibile!</strong> 🚀</p>',
+    unsafe_allow_html=True
+)
