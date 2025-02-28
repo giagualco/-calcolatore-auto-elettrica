@@ -223,3 +223,4 @@ st.pyplot(fig2)
 
 # Messaggio finale
 st.markdown("⚡ **Scegli la soluzione più efficiente e sostenibile!** 🚀")
+    
