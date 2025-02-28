@@ -16,8 +16,7 @@ st.set_page_config(
 def load_custom_css():
     """
     Carica Google Fonts e regole CSS personalizzate,
-    includendo media queries per dispositivi mobili e
-    regolando spaziature, tipografia e layout per una migliore accessibilità.
+    includendo media queries per dispositivi mobili.
     """
     css = """
     <style>
@@ -89,7 +88,7 @@ def load_custom_css():
         [data-testid="stHorizontalBlock"] {
             flex-direction: column !important;
         }
-        /* Riduci padding e margini */
+        /* Riduci padding e margini per schermi piccoli */
         .css-1d391kg, .css-1d391kg * {
             padding: 0.5em !important;
         }
@@ -108,13 +107,15 @@ st.markdown(
     '<p class="description">'
     'Confronta due veicoli considerando consumi specifici per percorso (urbano, extraurbano, autostrada), '
     'analizza costi annui, emissioni di CO₂ e calcola il break-even.<br>'
-    'Approfondisci sul mio <a class="youtube-link" href="https://www.youtube.com/@giagualco" target="_blank">Canale YouTube</a>!</p>',
+    'Approfondisci sul mio <a class="youtube-link" href="https://www.youtube.com/@giagualco" target="_blank">Canale YouTube</a>!'
+    '</p>',
     unsafe_allow_html=True
 )
 
 # =============================
 # 3. Sidebar: Dati per i Veicoli
 # =============================
+# --- Veicolo 1 ---
 st.sidebar.header("Dati del Veicolo 1")
 tipo_auto1 = st.sidebar.selectbox("Tipo di auto 1", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="auto1")
 modello_auto1 = st.sidebar.text_input("Modello auto 1", value="Auto 1", key="modello1")
@@ -130,6 +131,7 @@ else:
     consumo_extra1 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=13.0, step=0.1, format="%.1f", key="c_ext1")
     consumo_autostrada1 = st.sidebar.number_input("Autostrada (kWh/100km)", value=18.0, step=0.1, format="%.1f", key="c_aut1")
 
+# --- Veicolo 2 ---
 st.sidebar.header("Dati del Veicolo 2")
 tipo_auto2 = st.sidebar.selectbox("Tipo di auto 2", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="auto2")
 modello_auto2 = st.sidebar.text_input("Modello auto 2", value="Auto 2", key="modello2")
@@ -146,7 +148,7 @@ else:
     consumo_autostrada2 = st.sidebar.number_input("Autostrada (kWh/100km)", value=20.0, step=0.1, format="%.1f", key="c_aut2")
 
 # =============================
-# 4. Sidebar: Percentuali di Percorrenza e Costi Carburante/Energia
+# 4. Sidebar: Percentuali di Percorrenza & Costi Carburante/Energia
 # =============================
 st.sidebar.header("Percentuali di Guida (%)")
 perc_urbano = st.sidebar.slider("Urbano (%)", min_value=0, max_value=100, value=40, step=5, key="perc_urb")
@@ -193,8 +195,7 @@ if uploaded_files:
 # =============================
 def fattore_co2(tipo_auto):
     """
-    Ritorna il fattore di emissione (kg CO₂ per unità)
-    per il tipo di veicolo.
+    Ritorna il fattore di emissione (kg CO₂ per unità) per il tipo di veicolo.
     """
     if tipo_auto == "Benzina":
         return 2.3
@@ -205,13 +206,12 @@ def fattore_co2(tipo_auto):
     else:  # Elettrico
         return 0.5
 
-def prezzo_unita(tipo_auto, p_benzina, p_diesel, p_energia):
+def prezzo_unita(tipo_auto, p_benz, p_diesel, p_energia):
     """
-    Ritorna il prezzo unitario (€/L o €/kWh)
-    in base al tipo di auto.
+    Ritorna il prezzo unitario (€/L o €/kWh) in base al tipo di auto.
     """
     if tipo_auto in ["Benzina", "Ibrido"]:
-        return p_benzina
+        return p_benz
     elif tipo_auto == "Diesel":
         return p_diesel
     else:
@@ -231,7 +231,7 @@ def calcola_costi_ed_emissioni(tipo_auto, cons_urb, cons_ext, cons_aut, perc_urb
                                 p_benz, p_die, p_en, km_annui):
     """
     Calcola il costo annuo e le emissioni annue (kg CO₂) per un veicolo,
-    tenendo conto del consumo medio ponderato.
+    considerando il consumo medio ponderato.
     """
     consumo_medio = calcola_consumo_medio(cons_urb, cons_ext, cons_aut, perc_urb, perc_ext, perc_aut)
     p_unitario = prezzo_unita(tipo_auto, p_benz, p_die, p_en)
