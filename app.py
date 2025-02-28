@@ -131,3 +131,33 @@ if anni_pareggio:
 
         fig.tight_layout()
         st.pyplot(fig)
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Simulazione dati
+anni = np.arange(1, 11)  # Simuliamo 10 anni di utilizzo
+risparmio_economico = anni * 1000  # Supponiamo un risparmio di 1000€/anno
+co2_risparmiata = anni * 200  # Supponiamo un risparmio di 200kg di CO2/anno
+
+# Grafico del ritorno dell'investimento economico
+fig1, ax1 = plt.subplots(figsize=(8, 5))
+ax1.plot(anni, risparmio_economico, label="Risparmio economico (€)", color="blue", marker="o", linestyle="-")
+ax1.set_xlabel("Anni di utilizzo")
+ax1.set_ylabel("Risparmio economico (€)", color="blue")
+ax1.tick_params(axis="y", labelcolor="blue")
+plt.title("Tempo di ritorno dell'investimento economico")
+plt.legend()
+
+# Grafico del ritorno dell'investimento in CO₂
+fig2, ax2 = plt.subplots(figsize=(8, 5))
+ax2.plot(anni, co2_risparmiata, label="CO₂ risparmiata (kg)", color="green", marker="s", linestyle="--")
+ax2.set_xlabel("Anni di utilizzo")
+ax2.set_ylabel("CO₂ risparmiata (kg)", color="green")
+ax2.tick_params(axis="y", labelcolor="green")
+plt.title("Tempo di ritorno dell'investimento in CO₂")
+plt.legend()
+
+# Mostro i due grafici distinti
+fig1, fig2
+
