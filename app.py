@@ -152,3 +152,5 @@ ax.grid(True, linestyle="--", alpha=0.5)
 st.pyplot(fig)
 
 st.markdown("⚡ **Scegli la soluzione più efficiente e sostenibile!** 🚀")
+
+ 
