@@ -11,19 +11,19 @@ st.title("Confronto Auto Elettrica vs Termica")
 # Sezione per l'inserimento dei dati del veicolo termico
 st.header("Dati del veicolo termico")
 modello_termico = st.text_input("Modello veicolo termico")
-prezzo_termico = st.number_input("Prezzo d'acquisto (€)", min_value=0)
-consumo_termico_medio = st.number_input("Consumo medio (L/100km)", min_value=0.0, format="%.2f")
+prezzo_termico = st.number_input("Prezzo d'acquisto veicolo termico (€)", min_value=0)
+consumo_termico_medio = st.number_input("Consumo medio veicolo termico (L/100km)", min_value=0.0, format="%.2f")
 
 # Sezione per l'inserimento dei dati del veicolo elettrico
 st.header("Dati del veicolo elettrico")
 modello_elettrico = st.text_input("Modello veicolo elettrico")
-prezzo_elettrico = st.number_input("Prezzo d'acquisto (€)", min_value=0)
-consumo_elettrico_medio = st.number_input("Consumo medio (kWh/100km)", min_value=0.0, format="%.2f")
+prezzo_elettrico = st.number_input("Prezzo d'acquisto veicolo elettrico (€)", min_value=0)
+consumo_elettrico_medio = st.number_input("Consumo medio veicolo elettrico (kWh/100km)", min_value=0.0, format="%.2f")
 
 # Sezione per i costi del carburante e dell'energia
 st.header("Costi del carburante e dell'energia")
-prezzo_benzina = st.number_input("Prezzo benzina (€/L)", min_value=0.0, format="%.2f")
-prezzo_energia = st.number_input("Prezzo energia elettrica (€/kWh)", min_value=0.0, format="%.2f")
+prezzo_benzina = st.number_input("Prezzo benzina (€ per litro)", min_value=0.0, format="%.2f")
+prezzo_energia = st.number_input("Prezzo energia elettrica (€ per kWh)", min_value=0.0, format="%.2f")
 
 # Sezione per i dati di utilizzo
 st.header("Dati di utilizzo")
@@ -31,10 +31,10 @@ km_annui = st.number_input("Chilometri annui percorsi", min_value=0)
 
 # Distribuzione percentuale del tipo di percorso
 st.header("Distribuzione del percorso (%)")
-perc_citta = st.slider("Città", min_value=0, max_value=100, value=30)
-perc_extraurbano = st.slider("Extraurbano", min_value=0, max_value=100, value=50)
+perc_citta = st.slider("Percentuale di percorso in città", min_value=0, max_value=100, value=30)
+perc_extraurbano = st.slider("Percentuale di percorso extraurbano", min_value=0, max_value=100, value=50)
 perc_autostrada = 100 - perc_citta - perc_extraurbano
-st.write(f"Autostrada: {perc_autostrada}%")
+st.write(f"Percentuale di percorso in autostrada: {perc_autostrada}%")
 
 # Coefficienti di consumo relativi al tipo di percorso
 coeff_termico = {
