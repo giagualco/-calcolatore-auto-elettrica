@@ -91,18 +91,29 @@ with col2:
     st.metric(f"Costo annuale {modello_elettrico}", f"€{int(costo_annuo_elettrico):,}")
     st.metric(f"Consumo medio {modello_elettrico}", f"{consumo_elettrico_medio:.1f} kWh/100km")
 
-# Grafico del ritorno dell'investimento in Euro e CO2
+# Grafico con doppia asse (euro e CO2 in funzione degli anni)
 st.subheader("Tempo di ritorno dell'investimento")
 
-fig, ax = plt.subplots(figsize=(8, 5))
+if anni_pareggio:
+    anni = list(range(1, int(anni_pareggio) + 2))  # +2 per un punto extra sulla curva
+    costi_risparmiati = [delta_costo_annuo * i for i in anni]
+    co2_risparmiata_totale = [co2_risparmiata * i for i in anni]
 
-parametri = ["Anni per il pareggio economico", "CO2 risparmiata all'anno (kg)"]
-valori = [anni_pareggio if anni_pareggio else 0, co2_risparmiata]
+    fig, ax1 = plt.subplots(figsize=(8, 5))
 
-ax.barh(parametri, valori, color=['blue', 'green'])
-ax.set_xlabel("Valore")
-ax.set_title("Analisi del ritorno dell'investimento")
+    ax1.set_xlabel("Anni")
+    ax1.set_ylabel("Risparmio economico (€)", color="blue")
+    ax1.plot(anni, costi_risparmiati, label="Risparmio economico", color="blue", marker="o")
+    ax1.tick_params(axis="y", labelcolor="blue")
 
-st.pyplot(fig)
+    ax2 = ax1.twinx()
+    ax2.set_ylabel("CO₂ risparmiata (kg)", color="green")
+    ax2.plot(anni, co2_risparmiata_totale, label="CO₂ risparmiata", color="green", marker="s")
+    ax2.tick_params(axis="y", labelcolor="green")
 
+    fig.tight_layout()
+    st.pyplot(fig)
+else:
+    st.warning("Il risparmio economico non è sufficiente per determinare un tempo di ritorno dell'investimento.")
+    
 st.markdown("Confronta i costi e scegli la soluzione più efficiente e sostenibile.")
