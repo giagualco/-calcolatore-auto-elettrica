@@ -43,7 +43,6 @@ uploaded_files = st.sidebar.file_uploader("Carica più file JSON", type=["json"]
 
 # Variabili per il calcolo dei km annui e del tipo di percorso
 total_distance_km = None
-road_types = {"citta": 0, "extraurbano": 0, "autostrada": 0}
 
 # Elaborazione dei file caricati
 if uploaded_files:
@@ -54,19 +53,10 @@ if uploaded_files:
         # Estrazione dei segmenti di percorso
         activity_segments = [obj['activitySegment'] for obj in data["timelineObjects"] if 'activitySegment' in obj]
 
-        # Sommare i chilometri percorsi e identificare il tipo di strada
+        # Sommare i chilometri percorsi
         for segment in activity_segments:
             distance_km = segment.get('distance', 0) / 1000
-            activity_type = segment.get('activityType', '').lower()
-
             total_distance_km += distance_km
-
-            if "highway" in activity_type or "motorway" in activity_type or "expressway" in activity_type:
-                road_types["autostrada"] += distance_km
-            elif "city" in activity_type or "urban" in activity_type:
-                road_types["citta"] += distance_km
-            else:
-                road_types["extraurbano"] += distance_km
 
     st.sidebar.success(f"Dati caricati! Totale km percorsi: {int(total_distance_km)} km")
     km_annui = int(total_distance_km)
@@ -101,15 +91,15 @@ with col2:
     st.metric(f"Costo annuale {modello_elettrico}", f"€{int(costo_annuo_elettrico):,}")
     st.metric(f"Consumo medio {modello_elettrico}", f"{consumo_elettrico_medio:.1f} kWh/100km")
 
-# Grafico del ritorno dell'investimento
+# Grafico del ritorno dell'investimento in Euro e CO2
 st.subheader("Tempo di ritorno dell'investimento")
 
 fig, ax = plt.subplots(figsize=(8, 5))
 
-parametri = ["Differenza di costo annuale (€)", "Differenza di prezzo d'acquisto (€)", "Anni per il pareggio", "CO2 risparmiata all'anno (kg)"]
-valori = [delta_costo_annuo, delta_prezzo_acquisto, anni_pareggio if anni_pareggio else 0, co2_risparmiata]
+parametri = ["Anni per il pareggio economico", "CO2 risparmiata all'anno (kg)"]
+valori = [anni_pareggio if anni_pareggio else 0, co2_risparmiata]
 
-ax.barh(parametri, valori, color=['blue', 'red', 'green', 'purple'])
+ax.barh(parametri, valori, color=['blue', 'green'])
 ax.set_xlabel("Valore")
 ax.set_title("Analisi del ritorno dell'investimento")
 
