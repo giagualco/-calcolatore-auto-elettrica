@@ -17,7 +17,7 @@ def get_css():
     css = """
     <style>
     .stApp {
-        background-color: #F5F5F5; /* Sfondo grigio chiaro */
+        background-color: #FFFFFF; /* Sfondo bianco */
     }
     .stTitle {
         color: #2C3E50; /* Blu scuro */
@@ -37,7 +37,7 @@ def get_css():
         line-height: 1.6;
     }
     .stSidebar {
-        background-color: #FFFFFF; /* Bianco */
+        background-color: #F5F5F5; /* Grigio chiaro */
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
@@ -121,7 +121,7 @@ with st.sidebar:
         consumo_auto2 = st.number_input("Consumo medio (kWh/100km)", value=15, step=1, format="%d", key="consumo2")
 
     # Costi carburante e energia
-    st.markdown('<h2 class="stSubtitle">💰 Costi del Carburante e dell'Energia</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="stSubtitle">💰 Costi del Carburante e dell\'Energia</h2>', unsafe_allow_html=True)
     prezzo_benzina = st.number_input("Prezzo benzina (€/L)", value=1.90, step=0.01, format="%.2f", key="benzina")
     prezzo_diesel = st.number_input("Prezzo diesel (€/L)", value=1.80, step=0.01, format="%.2f", key="diesel")
     prezzo_energia = st.number_input("Prezzo energia elettrica (€/kWh)", value=0.25, step=0.01, format="%.2f", key="energia")
@@ -223,4 +223,3 @@ st.pyplot(fig2)
 
 # Messaggio finale
 st.markdown("⚡ **Scegli la soluzione più efficiente e sostenibile!** 🚀")
-    
