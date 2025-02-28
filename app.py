@@ -17,36 +17,55 @@ def get_css():
     css = """
     <style>
     .stApp {
-        background-color: #F0F2F6; /* Sfondo grigio chiaro */
+        background-color: #F5F5F5; /* Sfondo grigio chiaro */
     }
     .stTitle {
-        color: #0F2748; /* Blu scuro */
-        font-size: 28px;
+        color: #2C3E50; /* Blu scuro */
+        font-size: 32px;
         font-weight: bold;
+        margin-bottom: 20px;
     }
     .stSubtitle {
-        color: #457B9D; /* Blu medio */
+        color: #34495E; /* Blu medio */
         font-size: 24px;
         font-weight: bold;
+        margin-bottom: 15px;
     }
     .stText {
         color: #333333; /* Testo scuro */
         font-size: 18px;
+        line-height: 1.6;
     }
-    /* Colore dei widget e dei testi nella sidebar */
-    .css-1d391kg p, .css-1d391kg label, .css-1d391kg, .css-qrbaxs, .css-1v0mbdj {
-        color: #333333 !important;
+    .stSidebar {
+        background-color: #FFFFFF; /* Bianco */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     }
-    /* Sfondo della sidebar */
-    .css-1d391kg {
-        background-color: #FFFFFF !important; /* Bianco */
+    .stButton button {
+        background-color: #3498DB; /* Blu */
+        color: white;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: bold;
     }
-    /* Box e testo dei file uploader e alert */
-    .css-12w0qpk, .stAlert, .stFileUploader {
-        background-color: #FFFFFF !important; /* Bianco */
-        color: #333333 !important;
+    .stButton button:hover {
+        background-color: #2980B9; /* Blu scuro */
     }
-    /* Link al canale YouTube */
+    .stFileUploader {
+        background-color: #FFFFFF; /* Bianco */
+        border-radius: 5px;
+        padding: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+    .stAlert {
+        background-color: #E8F6F3; /* Verde chiaro */
+        color: #333333;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
     .youtube-link {
         position: fixed;
         top: 10px;
@@ -76,43 +95,62 @@ st.markdown(
 st.markdown('<h1 class="stTitle">🔋 Confronto Auto Elettrica vs Termica ⛽</h1>', unsafe_allow_html=True)
 
 # =============================
-# Dati delle due auto
+# Sidebar per input utente
 # =============================
-st.sidebar.header("🚗 Dati delle auto")
+with st.sidebar:
+    st.markdown('<h2 class="stSubtitle">🚗 Dati delle Auto</h2>', unsafe_allow_html=True)
 
-# Auto 1
-st.sidebar.subheader("Auto 1")
-tipo_auto1 = st.sidebar.selectbox("Tipo di auto 1", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="auto1")
-modello_auto1 = st.sidebar.text_input("Modello auto 1", value="Auto 1", key="modello1")
-costo_iniziale_auto1 = st.sidebar.number_input("Prezzo d'acquisto (€)", value=25000, step=1000, format="%d", key="costo1")
-if tipo_auto1 in ["Benzina", "Diesel", "Ibrido"]:
-    consumo_auto1 = st.sidebar.number_input("Consumo medio (L/100km)", value=6, step=1, format="%d", key="consumo1")
-else:
-    consumo_auto1 = st.sidebar.number_input("Consumo medio (kWh/100km)", value=15, step=1, format="%d", key="consumo1")
+    # Auto 1
+    st.markdown("**Auto 1**")
+    tipo_auto1 = st.selectbox("Tipo di auto 1", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="auto1")
+    modello_auto1 = st.text_input("Modello auto 1", value="Auto 1", key="modello1")
+    costo_iniziale_auto1 = st.number_input("Prezzo d'acquisto (€)", value=25000, step=1000, format="%d", key="costo1")
+    if tipo_auto1 in ["Benzina", "Diesel", "Ibrido"]:
+        consumo_auto1 = st.number_input("Consumo medio (L/100km)", value=6, step=1, format="%d", key="consumo1")
+    else:
+        consumo_auto1 = st.number_input("Consumo medio (kWh/100km)", value=15, step=1, format="%d", key="consumo1")
 
-# Auto 2
-st.sidebar.subheader("Auto 2")
-tipo_auto2 = st.sidebar.selectbox("Tipo di auto 2", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="auto2")
-modello_auto2 = st.sidebar.text_input("Modello auto 2", value="Auto 2", key="modello2")
-costo_iniziale_auto2 = st.sidebar.number_input("Prezzo d'acquisto (€)", value=35000, step=1000, format="%d", key="costo2")
-if tipo_auto2 in ["Benzina", "Diesel", "Ibrido"]:
-    consumo_auto2 = st.sidebar.number_input("Consumo medio (L/100km)", value=5, step=1, format="%d", key="consumo2")
-else:
-    consumo_auto2 = st.sidebar.number_input("Consumo medio (kWh/100km)", value=15, step=1, format="%d", key="consumo2")
+    # Auto 2
+    st.markdown("**Auto 2**")
+    tipo_auto2 = st.selectbox("Tipo di auto 2", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="auto2")
+    modello_auto2 = st.text_input("Modello auto 2", value="Auto 2", key="modello2")
+    costo_iniziale_auto2 = st.number_input("Prezzo d'acquisto (€)", value=35000, step=1000, format="%d", key="costo2")
+    if tipo_auto2 in ["Benzina", "Diesel", "Ibrido"]:
+        consumo_auto2 = st.number_input("Consumo medio (L/100km)", value=5, step=1, format="%d", key="consumo2")
+    else:
+        consumo_auto2 = st.number_input("Consumo medio (kWh/100km)", value=15, step=1, format="%d", key="consumo2")
 
-# =============================
-# Costi carburante e energia
-# =============================
-st.sidebar.header("💰 Costi del carburante e dell'energia")
-prezzo_benzina = st.sidebar.number_input("Prezzo benzina (€/L)", value=1.90, step=0.01, format="%.2f", key="benzina")
-prezzo_diesel = st.sidebar.number_input("Prezzo diesel (€/L)", value=1.80, step=0.01, format="%.2f", key="diesel")
-prezzo_energia = st.sidebar.number_input("Prezzo energia elettrica (€/kWh)", value=0.25, step=0.01, format="%.2f", key="energia")
+    # Costi carburante e energia
+    st.markdown('<h2 class="stSubtitle">💰 Costi del Carburante e dell'Energia</h2>', unsafe_allow_html=True)
+    prezzo_benzina = st.number_input("Prezzo benzina (€/L)", value=1.90, step=0.01, format="%.2f", key="benzina")
+    prezzo_diesel = st.number_input("Prezzo diesel (€/L)", value=1.80, step=0.01, format="%.2f", key="diesel")
+    prezzo_energia = st.number_input("Prezzo energia elettrica (€/kWh)", value=0.25, step=0.01, format="%.2f", key="energia")
 
-# =============================
-# Dati di utilizzo
-# =============================
-st.sidebar.header("📊 Dati di utilizzo")
-km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
+    # Dati di utilizzo
+    st.markdown('<h2 class="stSubtitle">📊 Dati di Utilizzo</h2>', unsafe_allow_html=True)
+    km_annui = st.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
+
+    # Caricamento file JSON di Google
+    st.markdown('<h2 class="stSubtitle">📂 Carica File JSON di Google</h2>', unsafe_allow_html=True)
+    uploaded_files = st.file_uploader("Carica i file JSON di Google Takeout", type=["json"], accept_multiple_files=True)
+
+    if uploaded_files:
+        total_distance_km = 0
+        for uploaded_file in uploaded_files:
+            try:
+                data = json.load(uploaded_file)
+                activity_segments = [
+                    obj['activitySegment'] 
+                    for obj in data.get("timelineObjects", []) 
+                    if 'activitySegment' in obj
+                ]
+                for segment in activity_segments:
+                    total_distance_km += segment.get('distance', 0) / 1000
+            except Exception as e:
+                st.error(f"Errore nel caricamento del file {uploaded_file.name}: {e}")
+        if total_distance_km > 0:
+            st.success(f"📊 Dati caricati! Totale km percorsi: {int(total_distance_km)} km")
+            km_annui = int(total_distance_km)
 
 # =============================
 # Calcoli dei costi ed emissioni
@@ -149,43 +187,39 @@ st.markdown(f'<p class="stText">{riepilogo_testuale}</p>', unsafe_allow_html=Tru
 # =============================
 # Grafico del costo cumulativo nel tempo
 # =============================
-st.subheader("📈 Confronto del costo cumulativo nel tempo")
+st.markdown('<h2 class="stSubtitle">📈 Confronto del Costo Cumulativo</h2>', unsafe_allow_html=True)
 
 anni_range = np.arange(0, 11)
 costo_totale_auto1 = costo_iniziale_auto1 + anni_range * costo_annuo_auto1
 costo_totale_auto2 = costo_iniziale_auto2 + anni_range * costo_annuo_auto2
 
 fig, ax = plt.subplots(figsize=(10, 6))
-
-# Stili di colore del grafico
-ax.plot(anni_range, costo_totale_auto1, label=f"{modello_auto1}", color="#457B9D", linestyle="-", linewidth=2, marker="o")
-ax.plot(anni_range, costo_totale_auto2, label=f"{modello_auto2}", color="#E63946", linestyle="-", linewidth=2, marker="s")
-
+ax.plot(anni_range, costo_totale_auto1, label=f"{modello_auto1}", color="#3498DB", linestyle="-", linewidth=2, marker="o")
+ax.plot(anni_range, costo_totale_auto2, label=f"{modello_auto2}", color="#E74C3C", linestyle="-", linewidth=2, marker="s")
 ax.fill_between(anni_range, costo_totale_auto1, costo_totale_auto2, color="#F0F2F6", alpha=0.3)
-
-ax.set_xlabel("Anni di utilizzo", fontsize=12, color="#333333")
-ax.set_ylabel("Costo cumulativo (€)", fontsize=12, color="#333333")
-ax.set_title("📊 Confronto del costo cumulativo", fontsize=14, color="#0F2748")
-ax.legend()
+ax.set_xlabel("Anni di utilizzo", fontsize=12, color="#2C3E50")
+ax.set_ylabel("Costo Cumulativo (€)", fontsize=12, color="#2C3E50")
+ax.set_title("Confronto del Costo Cumulativo", fontsize=16, color="#2C3E50", pad=20)
+ax.legend(loc="upper left", fontsize=12)
 ax.grid(True, linestyle="--", alpha=0.5)
-
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
 st.pyplot(fig)
 
 # =============================
 # Grafico delle emissioni di CO₂
 # =============================
-st.subheader("🌍 Confronto delle emissioni di CO₂")
+st.markdown('<h2 class="stSubtitle">🌍 Confronto delle Emissioni di CO₂</h2>', unsafe_allow_html=True)
 
-fig2, ax2 = plt.subplots(figsize=(10, 6))
-
-# Barre per le emissioni
-ax2.bar([modello_auto1, modello_auto2], [co2_auto1, co2_auto2], color=["#457B9D", "#E63946"])
-
-ax2.set_xlabel("Modello", fontsize=12, color="#333333")
-ax2.set_ylabel("Emissioni di CO₂ (kg/anno)", fontsize=12, color="#333333")
-ax2.set_title("📊 Confronto delle emissioni di CO₂", fontsize=14, color="#0F2748")
-ax2.grid(True, linestyle="--", alpha=0.5)
-
+fig2, ax2 = plt.subplots(figsize=(8, 6))
+ax2.bar([modello_auto1, modello_auto2], [co2_auto1, co2_auto2], color=["#3498DB", "#E74C3C"])
+ax2.set_xlabel("Modello", fontsize=12, color="#2C3E50")
+ax2.set_ylabel("Emissioni di CO₂ (kg/anno)", fontsize=12, color="#2C3E50")
+ax2.set_title("Confronto delle Emissioni di CO₂", fontsize=16, color="#2C3E50", pad=20)
+ax2.grid(True, linestyle="--", alpha=0.5, axis="y")
+ax2.spines['top'].set_visible(False)
+ax2.spines['right'].set_visible(False)
 st.pyplot(fig2)
 
+# Messaggio finale
 st.markdown("⚡ **Scegli la soluzione più efficiente e sostenibile!** 🚀")
