@@ -7,14 +7,14 @@ import numpy as np
 # Configurazione della pagina
 st.set_page_config(page_title="Confronto Auto Elettrica vs Termica", page_icon="🚗", layout="wide")
 
-# Stile CSS per migliorare l'aspetto grafico
+# Stile CSS per un aspetto grafico professionale e una migliore leggibilità
 st.markdown(
     """
     <style>
-    .stApp { background-color: #F5F7FA; }
-    .stTitle { color: #2E3B55; font-size: 28px; font-weight: bold; }
-    .stSubtitle { color: #3E4C6E; font-size: 24px; font-weight: bold; }
-    .stText { color: #4A4A4A; font-size: 18px; }
+    .stApp { background-color: #FFFFFF; }
+    .stTitle { color: #1D3557; font-size: 28px; font-weight: bold; }
+    .stSubtitle { color: #457B9D; font-size: 24px; font-weight: bold; }
+    .stText { color: #333333; font-size: 18px; }
     </style>
     """,
     unsafe_allow_html=True
@@ -63,7 +63,6 @@ if uploaded_files:
     for uploaded_file in uploaded_files:
         try:
             data = json.load(uploaded_file)
-            # Estrazione dei segmenti di attività
             activity_segments = [
                 obj['activitySegment'] 
                 for obj in data.get("timelineObjects", []) 
@@ -80,11 +79,9 @@ if uploaded_files:
 # =============================
 # Calcoli dei costi ed emissioni
 # =============================
-# Calcolo del costo annuale in base al consumo
 costo_annuo_termico = (km_annui / 100) * consumo_termico_medio * prezzo_benzina
 costo_annuo_elettrico = (km_annui / 100) * consumo_elettrico_medio * prezzo_energia
 
-# Calcolo del break-even (ritorno sull'investimento)
 delta_costo_annuo = costo_annuo_termico - costo_annuo_elettrico
 delta_costo_iniziale = costo_iniziale_elettrico - costo_iniziale_termico
 
@@ -93,8 +90,6 @@ if delta_costo_annuo > 0:
 else:
     anni_pareggio = None
 
-# Calcolo delle emissioni di CO₂
-# Fattori di emissione: 2.3 kg CO₂ per litro di benzina, 0.5 kg CO₂ per kWh
 co2_termica = (km_annui / 100) * consumo_termico_medio * 2.3
 co2_elettrica = (km_annui / 100) * consumo_elettrico_medio * 0.5
 co2_risparmiata = co2_termica - co2_elettrica
@@ -145,12 +140,13 @@ costo_totale_termico = costo_iniziale_termico + anni_range * costo_annuo_termico
 costo_totale_elettrico = costo_iniziale_elettrico + anni_range * costo_annuo_elettrico
 
 fig, ax = plt.subplots(figsize=(8, 5))
-ax.plot(anni_range, costo_totale_termico, label="Auto a Benzina", color="red", linestyle="-", linewidth=2, marker="o")
-ax.plot(anni_range, costo_totale_elettrico, label="Auto Elettrica", color="blue", linestyle="-", linewidth=2, marker="s")
-ax.fill_between(anni_range, costo_totale_elettrico, costo_totale_termico, color="lightgray", alpha=0.3)
-ax.set_xlabel("Anni di utilizzo")
-ax.set_ylabel("Costo cumulativo (€)")
-ax.set_title("📊 Confronto del costo cumulativo")
+ax.plot(anni_range, costo_totale_termico, label="Auto a Benzina", color="#E63946", linestyle="-", linewidth=2, marker="o")
+ax.plot(anni_range, costo_totale_elettrico, label="Auto Elettrica", color="#457B9D", linestyle="-", linewidth=2, marker="s")
+ax.fill_between(anni_range, costo_totale_elettrico, costo_totale_termico, color="lightgrey", alpha=0.3)
+ax.set_xlabel("Anni di utilizzo", fontsize=12, color="#333333")
+ax.set_ylabel("Costo cumulativo (€)", fontsize=12, color="#333333")
+ax.set_title("📊 Confronto del costo cumulativo", fontsize=14, color="#1D3557")
+ax.tick_params(axis='both', labelsize=10, colors="#333333")
 ax.legend()
 ax.grid(True, linestyle="--", alpha=0.5)
 st.pyplot(fig)
