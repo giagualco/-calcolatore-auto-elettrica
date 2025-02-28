@@ -151,12 +151,14 @@ else:
 # 4. Sidebar: Percentuali di Percorrenza & Costi Carburante/Energia
 # =============================
 st.sidebar.header("Percentuali di Guida (%)")
-perc_urbano = st.sidebar.slider("Urbano (%)", min_value=0, max_value=100, value=40, step=5, key="perc_urb")
-perc_extra = st.sidebar.slider("Extraurbano (%)", min_value=0, max_value=100, value=40, step=5, key="perc_ext")
-perc_autostrada = st.sidebar.slider("Autostrada (%)", min_value=0, max_value=100, value=20, step=5, key="perc_aut")
+# I seguenti slider permettono di impostare le percentuali di percorrenza per urbano, extraurbano e autostrada.
+perc_urbano = st.sidebar.slider("Urbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=0.5, help="Inserisci la percentuale di guida in ambiente urbano.", key="perc_urb")
+perc_extra = st.sidebar.slider("Extraurbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=0.5, help="Inserisci la percentuale di guida in ambiente extraurbano.", key="perc_ext")
+perc_autostrada = st.sidebar.slider("Autostrada (%)", min_value=0.0, max_value=100.0, value=20.0, step=0.5, help="Inserisci la percentuale di guida in autostrada.", key="perc_aut")
 
-if (perc_urbano + perc_extra + perc_autostrada) != 100:
-    st.sidebar.warning("La somma delle percentuali deve essere 100%.")
+# Controllo che la somma delle percentuali sia esattamente 100%
+if (perc_urbano + perc_extra + perc_autostrada) != 100.0:
+    st.sidebar.error(f"La somma delle percentuali è {perc_urbano + perc_extra + perc_autostrada}%. Deve essere esattamente 100%.")
 
 st.sidebar.header("Costi Carburante / Energia")
 prezzo_benzina = st.sidebar.number_input("Prezzo benzina (€/L)", value=1.90, step=0.01, format="%.2f", key="benzina")
@@ -203,7 +205,7 @@ def fattore_co2(tipo_auto):
         return 2.6
     elif tipo_auto == "Ibrido":
         return 2.0
-    else:  # Elettrico
+    else:
         return 0.5
 
 def prezzo_unita(tipo_auto, p_benz, p_diesel, p_energia):
