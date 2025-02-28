@@ -70,7 +70,7 @@ delta_costo_annuo = costo_annuo_termico - costo_annuo_elettrico
 delta_prezzo_acquisto = prezzo_elettrico - prezzo_termico
 
 if delta_costo_annuo > 0:
-    anni_pareggio = delta_prezzo_acquisto / delta_costo_annuo
+    anni_pareggio = int(delta_prezzo_acquisto / delta_costo_annuo)
 else:
     anni_pareggio = None
 
@@ -95,13 +95,13 @@ with col2:
 st.subheader("Tempo di ritorno dell'investimento")
 
 if anni_pareggio:
-    anni = list(range(1, int(anni_pareggio) + 2))  # +2 per un punto extra sulla curva
+    anni = list(range(1, anni_pareggio + 2))  # +2 per un punto extra sulla curva
     costi_risparmiati = [delta_costo_annuo * i for i in anni]
     co2_risparmiata_totale = [co2_risparmiata * i for i in anni]
 
     fig, ax1 = plt.subplots(figsize=(8, 5))
 
-    ax1.set_xlabel("Anni")
+    ax1.set_xlabel("Anni di utilizzo")
     ax1.set_ylabel("Risparmio economico (€)", color="blue")
     ax1.plot(anni, costi_risparmiati, label="Risparmio economico", color="blue", marker="o")
     ax1.tick_params(axis="y", labelcolor="blue")
