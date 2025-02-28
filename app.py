@@ -72,18 +72,21 @@ st.sidebar.header("Dati di utilizzo")
 km_annui = st.sidebar.number_input("Chilometraggio annuo (km)", value=15000, step=500, format="%d")
 anni_possesso = st.sidebar.number_input("Durata del possesso (anni)", value=5, step=1, format="%d")
 
-# Caricamento del file Google Takeout
-st.sidebar.header("Carica il file Google Takeout")
-uploaded_file = st.sidebar.file_uploader("Carica un file JSON di Google Takeout", type=["json"])
+# Caricamento multiplo di file Google Takeout
+st.sidebar.header("Carica i file Google Takeout")
+uploaded_files = st.sidebar.file_uploader("Carica più file JSON", type=["json"], accept_multiple_files=True)
 
-if uploaded_file is not None:
-    data = json.load(uploaded_file)
+total_distance_km = 0
 
-    # Estrarre gli spostamenti
-    activity_segments = [obj['activitySegment'] for obj in data["timelineObjects"] if 'activitySegment' in obj]
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        data = json.load(uploaded_file)
 
-    # Analizzare i dati di percorrenza
-    total_distance_km = sum(segment.get('distance', 0) for segment in activity_segments) / 1000
+        # Estrarre gli spostamenti
+        activity_segments = [obj['activitySegment'] for obj in data["timelineObjects"] if 'activitySegment' in obj]
+
+        # Sommare i chilometri percorsi
+        total_distance_km += sum(segment.get('distance', 0) for segment in activity_segments) / 1000
 
     st.sidebar.success(f"Dati caricati con successo! Totale km percorsi: {int(total_distance_km)} km")
     km_annui = int(total_distance_km)
