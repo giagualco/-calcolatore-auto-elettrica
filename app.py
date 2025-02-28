@@ -7,8 +7,21 @@ import numpy as np
 # Configurazione della pagina
 st.set_page_config(page_title="Confronto Auto Elettrica vs Termica", page_icon="🚗", layout="wide")
 
+# Stile CSS per migliorare l'aspetto grafico
+st.markdown(
+    """
+    <style>
+    .stApp { background-color: #F5F7FA; }
+    .stTitle { color: #2E3B55; font-size: 28px; font-weight: bold; }
+    .stSubtitle { color: #3E4C6E; font-size: 24px; font-weight: bold; }
+    .stText { color: #4A4A4A; font-size: 18px; }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Titolo principale
-st.title("🔋 Confronto Auto Elettrica vs Termica ⛽")
+st.markdown('<h1 class="stTitle">🔋 Confronto Auto Elettrica vs Termica ⛽</h1>', unsafe_allow_html=True)
 
 # Sezione per i dati del veicolo termico
 st.sidebar.header("🚗 Dati del veicolo termico")
@@ -65,39 +78,41 @@ co2_termica = (km_annui / 100) * consumo_termico_medio * 2.3
 co2_elettrica = (km_annui / 100) * consumo_elettrico_medio * 0.5
 co2_risparmiata = co2_termica - co2_elettrica
 
-# Creazione dei grafici con design migliorato
+# Riepilogo testuale
+st.markdown('<h2 class="stSubtitle">🔎 Riepilogo del Confronto</h2>', unsafe_allow_html=True)
+
+riepilogo_testuale = f"""
+- **Costo annuo di utilizzo**:
+  - **{modello_termico}**: €{int(costo_annuo_termico):,} all'anno
+  - **{modello_elettrico}**: €{int(costo_annuo_elettrico):,} all'anno
+
+- **Costo totale dopo {anni_pareggio} anni**:
+  - **{modello_termico}**: €{int(prezzo_termico + anni_pareggio * costo_annuo_termico):,}
+  - **{modello_elettrico}**: €{int(prezzo_elettrico + anni_pareggio * costo_annuo_elettrico):,}
+
+- **Tempo di ritorno dell'investimento**:
+  - {"Il tempo di ritorno è di circa " + str(anni_pareggio) + " anni." if anni_pareggio else "Non si raggiunge un ritorno dell'investimento con i dati attuali."}
+
+- **Riduzione delle emissioni di CO₂**:
+  - {"Passando all'auto elettrica si risparmierebbero circa " + str(int(co2_risparmiata * anni_pareggio)) + " kg di CO₂ in " + str(anni_pareggio) + " anni." if co2_risparmiata > 0 else "Nessuna riduzione significativa delle emissioni di CO₂ osservata."}
+"""
+st.markdown(f'<p class="stText">{riepilogo_testuale}</p>', unsafe_allow_html=True)
+
+# Grafico migliorato
+st.subheader("📈 Confronto del costo cumulativo nel tempo")
 anni = np.arange(0, anni_pareggio + 2) if anni_pareggio else np.arange(0, 11)
 costo_totale_benzina = prezzo_termico + anni * costo_annuo_termico
 costo_totale_elettrico = prezzo_elettrico + anni * costo_annuo_elettrico
 
-# Grafico del ritorno dell'investimento economico (€)
-st.subheader("📈 Tempo di ritorno dell'investimento economico (€)")
-fig1, ax1 = plt.subplots(figsize=(8, 5))
-ax1.plot(anni, costo_totale_benzina, label="Auto a Benzina", color="red", linestyle="-", linewidth=2, marker="o")
-ax1.plot(anni, costo_totale_elettrico, label="Auto Elettrica", color="blue", linestyle="-", linewidth=2, marker="s")
-ax1.fill_between(anni, costo_totale_elettrico, costo_totale_benzina, color="lightgray", alpha=0.3)
-ax1.set_xlabel("Anni di utilizzo")
-ax1.set_ylabel("Costo cumulativo (€)")
-ax1.set_title("📊 Confronto del costo cumulativo nel tempo")
-ax1.legend()
-ax1.grid(True, linestyle="--", alpha=0.5)
-st.pyplot(fig1)
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.plot(anni, costo_totale_benzina, label="Auto a Benzina", color="red", linestyle="-", linewidth=2, marker="o")
+ax.plot(anni, costo_totale_elettrico, label="Auto Elettrica", color="blue", linestyle="-", linewidth=2, marker="s")
+ax.fill_between(anni, costo_totale_elettrico, costo_totale_benzina, color="lightgray", alpha=0.3)
+ax.set_xlabel("Anni di utilizzo")
+ax.set_ylabel("Costo cumulativo (€)")
+ax.set_title("📊 Confronto del costo cumulativo")
+ax.legend()
+ax.grid(True, linestyle="--", alpha=0.5)
+st.pyplot(fig)
 
-# Grafico del ritorno dell'investimento in CO₂
-st.subheader("🌍 Tempo di ritorno dell'investimento in CO₂")
-co2_totale_benzina = anni * co2_termica
-co2_totale_elettrica = anni * co2_elettrica
-
-fig2, ax2 = plt.subplots(figsize=(8, 5))
-ax2.plot(anni, co2_totale_benzina, label="Auto a Benzina", color="red", linestyle="-", linewidth=2, marker="o")
-ax2.plot(anni, co2_totale_elettrica, label="Auto Elettrica", color="blue", linestyle="-", linewidth=2, marker="s")
-ax2.fill_between(anni, co2_totale_elettrica, co2_totale_benzina, color="lightgray", alpha=0.3)
-ax2.set_xlabel("Anni di utilizzo")
-ax2.set_ylabel("CO₂ cumulativa (kg)")
-ax2.set_title("🌱 Confronto delle emissioni di CO₂ nel tempo")
-ax2.legend()
-ax2.grid(True, linestyle="--", alpha=0.5)
-st.pyplot(fig2)
-
-# Messaggio finale
-st.markdown("⚡ Confronta i costi e le emissioni per scegliere la soluzione più efficiente e sostenibile! 🚀")
+st.markdown("⚡ **Scegli la soluzione più efficiente e sostenibile!** 🚀")
