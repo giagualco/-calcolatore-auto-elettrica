@@ -117,3 +117,4 @@ else:
     st.warning("Il risparmio economico non è sufficiente per determinare un tempo di ritorno dell'investimento.")
     
 st.markdown("Confronta i costi e scegli la soluzione più efficiente e sostenibile.")
+
