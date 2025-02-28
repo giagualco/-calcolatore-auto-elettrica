@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import json
+from fpdf import FPDF
 
 # Configurazione della pagina con colori personalizzati
 st.set_page_config(page_title="Confronto Auto Elettrica vs Termica", page_icon="🚗", layout="wide")
@@ -70,6 +72,22 @@ st.sidebar.header("Dati di utilizzo")
 km_annui = st.sidebar.number_input("Chilometraggio annuo (km)", value=15000, step=500, format="%d")
 anni_possesso = st.sidebar.number_input("Durata del possesso (anni)", value=5, step=1, format="%d")
 
+# Caricamento del file Google Takeout
+st.sidebar.header("Carica il file Google Takeout")
+uploaded_file = st.sidebar.file_uploader("Carica un file JSON di Google Takeout", type=["json"])
+
+if uploaded_file is not None:
+    data = json.load(uploaded_file)
+
+    # Estrarre gli spostamenti
+    activity_segments = [obj['activitySegment'] for obj in data["timelineObjects"] if 'activitySegment' in obj]
+
+    # Analizzare i dati di percorrenza
+    total_distance_km = sum(segment.get('distance', 0) for segment in activity_segments) / 1000
+
+    st.sidebar.success(f"Dati caricati con successo! Totale km percorsi: {int(total_distance_km)} km")
+    km_annui = int(total_distance_km)
+
 # Emissioni CO2 per la costruzione dell'auto
 emissioni_produzione_termico = 7000  # kg di CO2 per veicolo termico
 emissioni_produzione_elettrico = 12000  # kg di CO2 per veicolo elettrico (batterie incluse)
@@ -103,43 +121,26 @@ with col2:
     st.metric(f"Costo totale {modello_elettrico if modello_elettrico else 'Auto Elettrica'}", f"€{int(costo_totale_elettrica):,}")
     st.metric(f"Emissioni totali CO2 {modello_elettrico if modello_elettrico else 'Auto Elettrica'}", f"{int(emissioni_totali_elettrica):,} kg")
 
-if costo_totale_elettrica < costo_totale_termica:
-    st.success(f"L'auto elettrica ({modello_elettrico if modello_elettrico else 'Elettrica'}) è più conveniente.")
-else:
-    st.warning(f"L'auto termica ({modello_termico if modello_termico else 'Termica'}) è più conveniente.")
-
-# Grafico comparativo costi ed emissioni
-anni = list(range(1, anni_possesso + 1))
-costi_termica = [
-    prezzo_termico + ((km_annui / 100) * consumo_termico * prezzo_benzina * i)
-    for i in anni
-]
-costi_elettrica = [
-    prezzo_elettrico + ((km_annui / 100) * consumo_elettrico * prezzo_energia * i)
-    for i in anni
-]
-emissioni_termica_anni = [
-    (emissioni_termico * km_annui * i / 1000) + emissioni_produzione_termico for i in anni
-]
-emissioni_elettrica_anni = [
-    (emissioni_elettrico * km_annui * i / 1000) + emissioni_produzione_elettrico for i in anni
-]
-
-df_costi = pd.DataFrame({
-    "Anno": anni,
-    f"{modello_termico if modello_termico else 'Auto Termica'} (€)": costi_termica,
-    f"{modello_elettrico if modello_elettrico else 'Auto Elettrica'} (€)": costi_elettrica,
-})
-df_emissioni = pd.DataFrame({
-    "Anno": anni,
-    f"{modello_termico if modello_termico else 'Auto Termica'} (kg CO2)": emissioni_termica_anni,
-    f"{modello_elettrico if modello_elettrico else 'Auto Elettrica'} (kg CO2)": emissioni_elettrica_anni,
-})
-
-st.subheader("Andamento dei costi nel tempo")
-st.line_chart(df_costi.set_index("Anno"))
-
-st.subheader("Andamento delle emissioni di CO2 nel tempo")
-st.line_chart(df_emissioni.set_index("Anno"))
+# Generazione del PDF
+if st.button("Scarica il report in PDF"):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    
+    pdf.cell(200, 10, "Confronto Auto Elettrica vs Termica", ln=True, align='C')
+    pdf.ln(10)
+    pdf.cell(200, 10, f"Modello Termico: {modello_termico}", ln=True)
+    pdf.cell(200, 10, f"Costo Totale Termico: €{int(costo_totale_termica):,}", ln=True)
+    pdf.cell(200, 10, f"Emissioni CO2 Termico: {int(emissioni_totali_termica):,} kg", ln=True)
+    pdf.ln(5)
+    pdf.cell(200, 10, f"Modello Elettrico: {modello_elettrico}", ln=True)
+    pdf.cell(200, 10, f"Costo Totale Elettrico: €{int(costo_totale_elettrica):,}", ln=True)
+    pdf.cell(200, 10, f"Emissioni CO2 Elettrico: {int(emissioni_totali_elettrica):,} kg", ln=True)
+    
+    pdf_path = "/mnt/data/confronto_auto.pdf"
+    pdf.output(pdf_path)
+    
+    st.success("PDF generato con successo!")
+    st.download_button(label="Scarica il PDF", data=open(pdf_path, "rb"), file_name="confronto_auto.pdf", mime="application/pdf")
 
 st.markdown("Confronta i costi e le emissioni per scegliere la soluzione più efficiente e sostenibile.")
