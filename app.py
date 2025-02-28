@@ -7,20 +7,78 @@ import numpy as np
 # Configurazione della pagina
 st.set_page_config(page_title="Confronto Auto Elettrica vs Termica", page_icon="🚗", layout="wide")
 
-# Stile CSS per un aspetto grafico professionale e una migliore leggibilità
-st.markdown(
+# =============================
+# Funzione per generare CSS dinamico
+# =============================
+def get_css(theme):
     """
+    Restituisce il blocco CSS in base al tema selezionato (Light/Dark).
+    Colori ispirati all'immagine fornita: background navy e testo giallo/bianco per il dark theme,
+    sfondo bianco e testo scuro per il light theme.
+    """
+    if theme == "Dark":
+        background_color = "#0F2748"  # Navy scuro
+        text_color = "#FFFFFF"
+        title_color = "#F7D600"      # Giallo acceso
+        subtitle_color = "#F7D600"
+        chart_bg_color = "#0F2748"
+        chart_grid_color = "#FFFFFF"
+    else:
+        background_color = "#FFFFFF"
+        text_color = "#333333"
+        title_color = "#0F2748"      # Navy scuro
+        subtitle_color = "#457B9D"   # Blu più chiaro
+        chart_bg_color = "#FFFFFF"
+        chart_grid_color = "#333333"
+        
+    css = f"""
     <style>
-    .stApp { background-color: #FFFFFF; }
-    .stTitle { color: #1D3557; font-size: 28px; font-weight: bold; }
-    .stSubtitle { color: #457B9D; font-size: 24px; font-weight: bold; }
-    .stText { color: #333333; font-size: 18px; }
+    .stApp {{
+        background-color: {background_color};
+    }}
+    .stTitle {{
+        color: {title_color};
+        font-size: 28px;
+        font-weight: bold;
+    }}
+    .stSubtitle {{
+        color: {subtitle_color};
+        font-size: 24px;
+        font-weight: bold;
+    }}
+    .stText {{
+        color: {text_color};
+        font-size: 18px;
+    }}
+    /* Colore dei widget e dei testi nella sidebar */
+    .css-1d391kg p, .css-1d391kg label, .css-1d391kg, .css-qrbaxs, .css-1v0mbdj {{
+        color: {text_color} !important;
+    }}
+    /* Sfondo della sidebar */
+    .css-1d391kg {{
+        background-color: {background_color} !important;
+    }}
+    /* Box e testo dei file uploader e alert */
+    .css-12w0qpk, .stAlert, .stFileUploader {{
+        background-color: #f0f2f6 !important; /* Leggermente più chiaro per contrastare */
+        color: #333333 !important;
+    }}
     </style>
-    """,
-    unsafe_allow_html=True
-)
+    """
+    return css, chart_bg_color, chart_grid_color, text_color
 
-# Titolo principale
+# =============================
+# Selezione tema in sidebar
+# =============================
+theme_choice = st.sidebar.selectbox("Seleziona il tema:", ["Light", "Dark"])
+
+# Ottieni CSS e impostazioni per il grafico in base al tema
+css_code, chart_bg_color, chart_grid_color, chart_text_color = get_css(theme_choice)
+
+# Applica il CSS
+st.markdown(css_code, unsafe_allow_html=True)
+
+# Titolo principale (usa classi stTitle per colorarlo dinamicamente)
 st.markdown('<h1 class="stTitle">🔋 Confronto Auto Elettrica vs Termica ⛽</h1>', unsafe_allow_html=True)
 
 # =============================
@@ -140,17 +198,50 @@ costo_totale_termico = costo_iniziale_termico + anni_range * costo_annuo_termico
 costo_totale_elettrico = costo_iniziale_elettrico + anni_range * costo_annuo_elettrico
 
 fig, ax = plt.subplots(figsize=(8, 5))
-ax.plot(anni_range, costo_totale_termico, label="Auto a Benzina", color="#E63946", linestyle="-", linewidth=2, marker="o")
-ax.plot(anni_range, costo_totale_elettrico, label="Auto Elettrica", color="#457B9D", linestyle="-", linewidth=2, marker="s")
-ax.fill_between(anni_range, costo_totale_elettrico, costo_totale_termico, color="lightgrey", alpha=0.3)
-ax.set_xlabel("Anni di utilizzo", fontsize=12, color="#333333")
-ax.set_ylabel("Costo cumulativo (€)", fontsize=12, color="#333333")
-ax.set_title("📊 Confronto del costo cumulativo", fontsize=14, color="#1D3557")
-ax.tick_params(axis='both', labelsize=10, colors="#333333")
+
+# Stili di colore del grafico in base al tema
+if theme_choice == "Dark":
+    # Termica in giallo, Elettrica in bianco
+    line_termica_color = "#F7D600"
+    line_elettrica_color = "#FFFFFF"
+    fill_color = "#F7D600"
+    ax.set_facecolor(chart_bg_color)
+    ax.spines["bottom"].set_color(chart_grid_color)
+    ax.spines["top"].set_color(chart_grid_color)
+    ax.spines["left"].set_color(chart_grid_color)
+    ax.spines["right"].set_color(chart_grid_color)
+    ax.xaxis.label.set_color(chart_text_color)
+    ax.yaxis.label.set_color(chart_text_color)
+    ax.tick_params(axis='x', colors=chart_text_color)
+    ax.tick_params(axis='y', colors=chart_text_color)
+    title_color = "#F7D600"
+else:
+    # Termica in rosso, Elettrica in blu
+    line_termica_color = "#E63946"
+    line_elettrica_color = "#457B9D"
+    fill_color = "lightgrey"
+    ax.set_facecolor(chart_bg_color)
+    title_color = "#0F2748"
+
+ax.plot(anni_range, costo_totale_termico, 
+        label="Auto a Benzina", 
+        color=line_termica_color, 
+        linestyle="-", linewidth=2, marker="o")
+
+ax.plot(anni_range, costo_totale_elettrico, 
+        label="Auto Elettrica", 
+        color=line_elettrica_color, 
+        linestyle="-", linewidth=2, marker="s")
+
+ax.fill_between(anni_range, costo_totale_elettrico, costo_totale_termico, 
+                color=fill_color, alpha=0.2)
+
+ax.set_xlabel("Anni di utilizzo", fontsize=12)
+ax.set_ylabel("Costo cumulativo (€)", fontsize=12)
+ax.set_title("📊 Confronto del costo cumulativo", fontsize=14, color=title_color)
 ax.legend()
 ax.grid(True, linestyle="--", alpha=0.5)
+
 st.pyplot(fig)
 
 st.markdown("⚡ **Scegli la soluzione più efficiente e sostenibile!** 🚀")
-
- 
