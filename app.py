@@ -8,11 +8,12 @@ import numpy as np
 st.set_page_config(page_title="Confronto Auto Elettrica vs Termica", page_icon="🚗", layout="wide")
 
 # =============================
-# Funzione per generare CSS dinamico
+# Funzione per generare CSS minimale
 # =============================
 def get_css():
     """
-    Restituisce il blocco CSS con colori professionali e stile moderno.
+    Restituisce un blocco CSS semplice con colori ad alto contrasto
+    per garantire la massima leggibilità.
     """
     css = """
     <style>
@@ -36,36 +37,6 @@ def get_css():
         font-size: 18px;
         line-height: 1.6;
     }
-    .stSidebar {
-        background-color: #F5F5F5; /* Grigio chiaro */
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-    .stButton button {
-        background-color: #3498DB; /* Blu */
-        color: white;
-        border-radius: 5px;
-        padding: 10px 20px;
-        font-size: 16px;
-        font-weight: bold;
-    }
-    .stButton button:hover {
-        background-color: #2980B9; /* Blu scuro */
-    }
-    .stFileUploader {
-        background-color: #FFFFFF; /* Bianco */
-        border-radius: 5px;
-        padding: 10px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-    .stAlert {
-        background-color: #E8F6F3; /* Verde chiaro */
-        color: #333333;
-        border-radius: 5px;
-        padding: 10px;
-        margin-bottom: 20px;
-    }
     .youtube-link {
         position: fixed;
         top: 10px;
@@ -85,7 +56,7 @@ def get_css():
 # Applica il CSS
 st.markdown(get_css(), unsafe_allow_html=True)
 
-# Link al canale YouTube
+# Link al canale YouTube (fisso in alto a sinistra)
 st.markdown(
     '<a class="youtube-link" href="https://www.youtube.com/@giagualco" target="_blank">🎥 Canale YouTube</a>',
     unsafe_allow_html=True
@@ -140,8 +111,8 @@ with st.sidebar:
             try:
                 data = json.load(uploaded_file)
                 activity_segments = [
-                    obj['activitySegment'] 
-                    for obj in data.get("timelineObjects", []) 
+                    obj['activitySegment']
+                    for obj in data.get("timelineObjects", [])
                     if 'activitySegment' in obj
                 ]
                 for segment in activity_segments:
@@ -153,9 +124,17 @@ with st.sidebar:
             km_annui = int(total_distance_km)
 
 # =============================
-# Calcoli dei costi ed emissioni
+# Funzione di calcolo costi ed emissioni
 # =============================
 def calcola_costi_e_emissioni(tipo_auto, consumo, km_annui, prezzo_carburante, prezzo_energia):
+    """
+    Calcola i costi annui e le emissioni di CO2 per una specifica tipologia di auto.
+    - tipo_auto: "Benzina", "Diesel", "Ibrido" o "Elettrico"
+    - consumo: L/100km o kWh/100km
+    - km_annui: chilometri percorsi in un anno
+    - prezzo_carburante: costo per L (benzina/diesel) se l'auto non è elettrica
+    - prezzo_energia: costo per kWh se l'auto è elettrica
+    """
     if tipo_auto in ["Benzina", "Diesel", "Ibrido"]:
         costo_annuo = (km_annui / 100) * consumo * prezzo_carburante
         co2_emessa = (km_annui / 100) * consumo * 2.3  # Emissioni CO2 per litro di carburante
@@ -164,28 +143,43 @@ def calcola_costi_e_emissioni(tipo_auto, consumo, km_annui, prezzo_carburante, p
         co2_emessa = (km_annui / 100) * consumo * 0.5  # Emissioni CO2 per kWh
     return costo_annuo, co2_emessa
 
-costo_annuo_auto1, co2_auto1 = calcola_costi_e_emissioni(tipo_auto1, consumo_auto1, km_annui, prezzo_benzina if tipo_auto1 == "Benzina" else prezzo_diesel, prezzo_energia)
-costo_annuo_auto2, co2_auto2 = calcola_costi_e_emissioni(tipo_auto2, consumo_auto2, km_annui, prezzo_benzina if tipo_auto2 == "Benzina" else prezzo_diesel, prezzo_energia)
+# Calcoli per Auto 1
+costo_annuo_auto1, co2_auto1 = calcola_costi_e_emissioni(
+    tipo_auto1,
+    consumo_auto1,
+    km_annui,
+    prezzo_benzina if tipo_auto1 == "Benzina" else prezzo_diesel,
+    prezzo_energia
+)
+
+# Calcoli per Auto 2
+costo_annuo_auto2, co2_auto2 = calcola_costi_e_emissioni(
+    tipo_auto2,
+    consumo_auto2,
+    km_annui,
+    prezzo_benzina if tipo_auto2 == "Benzina" else prezzo_diesel,
+    prezzo_energia
+)
 
 # =============================
-# Riepilogo testuale del confronto
+# Riepilogo testuale
 # =============================
 st.markdown('<h2 class="stSubtitle">🔎 Riepilogo del Confronto</h2>', unsafe_allow_html=True)
 
 riepilogo_testuale = f"""
 - **Costo annuo di utilizzo**:
-  - **{modello_auto1}**: €{int(costo_annuo_auto1):,} all'anno
-  - **{modello_auto2}**: €{int(costo_annuo_auto2):,} all'anno
+  - **{modello_auto1}** ({tipo_auto1}): €{int(costo_annuo_auto1):,} all'anno
+  - **{modello_auto2}** ({tipo_auto2}): €{int(costo_annuo_auto2):,} all'anno
 
 - **Emissioni di CO₂**:
-  - **{modello_auto1}**: {int(co2_auto1)} kg di CO₂ all'anno
-  - **{modello_auto2}**: {int(co2_auto2)} kg di CO₂ all'anno
+  - **{modello_auto1}** ({tipo_auto1}): {int(co2_auto1)} kg di CO₂ all'anno
+  - **{modello_auto2}** ({tipo_auto2}): {int(co2_auto2)} kg di CO₂ all'anno
 """
 
 st.markdown(f'<p class="stText">{riepilogo_testuale}</p>', unsafe_allow_html=True)
 
 # =============================
-# Grafico del costo cumulativo nel tempo
+# Grafico del costo cumulativo
 # =============================
 st.markdown('<h2 class="stSubtitle">📈 Confronto del Costo Cumulativo</h2>', unsafe_allow_html=True)
 
@@ -194,9 +188,24 @@ costo_totale_auto1 = costo_iniziale_auto1 + anni_range * costo_annuo_auto1
 costo_totale_auto2 = costo_iniziale_auto2 + anni_range * costo_annuo_auto2
 
 fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot(anni_range, costo_totale_auto1, label=f"{modello_auto1}", color="#1f77b4", linestyle="-", linewidth=2, marker="o")
-ax.plot(anni_range, costo_totale_auto2, label=f"{modello_auto2}", color="#ff7f0e", linestyle="-", linewidth=2, marker="s")
-ax.fill_between(anni_range, costo_totale_auto1, costo_totale_auto2, color="#f0f2f6", alpha=0.3)
+ax.plot(
+    anni_range, costo_totale_auto1,
+    label=f"{modello_auto1} ({tipo_auto1})",
+    color="#1f77b4", linestyle="-", linewidth=2, marker="o"
+)
+ax.plot(
+    anni_range, costo_totale_auto2,
+    label=f"{modello_auto2} ({tipo_auto2})",
+    color="#ff7f0e", linestyle="-", linewidth=2, marker="s"
+)
+ax.fill_between(
+    anni_range,
+    costo_totale_auto1,
+    costo_totale_auto2,
+    color="#f0f2f6",
+    alpha=0.3
+)
+
 ax.set_xlabel("Anni di utilizzo", fontsize=12, color="#2C3E50")
 ax.set_ylabel("Costo Cumulativo (€)", fontsize=12, color="#2C3E50")
 ax.set_title("Confronto del Costo Cumulativo", fontsize=16, color="#2C3E50", pad=20)
@@ -212,7 +221,11 @@ st.pyplot(fig)
 st.markdown('<h2 class="stSubtitle">🌍 Confronto delle Emissioni di CO₂</h2>', unsafe_allow_html=True)
 
 fig2, ax2 = plt.subplots(figsize=(8, 6))
-ax2.bar([modello_auto1, modello_auto2], [co2_auto1, co2_auto2], color=["#1f77b4", "#ff7f0e"])
+ax2.bar(
+    [f"{modello_auto1} ({tipo_auto1})", f"{modello_auto2} ({tipo_auto2})"],
+    [co2_auto1, co2_auto2],
+    color=["#1f77b4", "#ff7f0e"]
+)
 ax2.set_xlabel("Modello", fontsize=12, color="#2C3E50")
 ax2.set_ylabel("Emissioni di CO₂ (kg/anno)", fontsize=12, color="#2C3E50")
 ax2.set_title("Confronto delle Emissioni di CO₂", fontsize=16, color="#2C3E50", pad=20)
@@ -222,4 +235,4 @@ ax2.spines['right'].set_visible(False)
 st.pyplot(fig2)
 
 # Messaggio finale
-st.markdown("⚡ **Scegli la soluzione più efficiente e sostenibile!** 🚀")
+st.markdown('<p class="stText">⚡ <strong>Scegli la soluzione più efficiente e sostenibile!</strong> 🚀</p>', unsafe_allow_html=True)
