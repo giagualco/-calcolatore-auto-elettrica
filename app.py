@@ -6,56 +6,58 @@ import numpy as np
 
 # Configurazione della pagina
 st.set_page_config(
-    page_title="Confronto Auto Elettrica vs Termica",
+    page_title="Configuratore Auto: Confronto Elettrica vs Termica",
     page_icon="🚗",
     layout="wide"
 )
 
 # =============================
-# CSS ad alto contrasto per forzare sfondo bianco e testo scuro
+# CSS forzato ad alto contrasto
 # =============================
 def get_css():
     """
-    Forza lo sfondo a bianco e il testo a nero/grigio scuro,
-    sovrascrivendo il tema di Streamlit (anche se è in Dark Mode).
+    Forza uno sfondo bianco e testo scuro su tutta l'app,
+    inclusa la sidebar e i widget di Streamlit.
     """
     css = """
     <style>
-    /* Forza background bianco e testo scuro su tutto l'app */
-    html, body, [class*="css"]  {
+    /* Forza sfondo bianco e testo scuro su tutti i contenitori e widget */
+    html, body, [class*="css"] {
         background-color: #FFFFFF !important;
         color: #333333 !important;
     }
-    /* Titoli e sottotitoli */
-    h1, h2, h3, h4, h5, h6 {
-        color: #2C3E50 !important; /* Blu scuro */
-        font-weight: bold !important;
+    /* Sidebar: sfondo bianco e testo scuro */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
     }
-    /* Classi personalizzate */
+    [data-testid="stSidebar"] * {
+        color: #333333 !important;
+    }
+    /* Forza colore scuro anche nei file uploader, bottoni e alert */
+    [data-testid="stFileUploader"] * {
+        color: #333333 !important;
+    }
+    /* Titoli personalizzati */
     .stTitle {
         color: #2C3E50 !important;
         font-size: 32px !important;
         font-weight: bold !important;
-        margin-bottom: 20px;
+        margin-bottom: 20px !important;
     }
     .stSubtitle {
         color: #34495E !important;
         font-size: 24px !important;
         font-weight: bold !important;
-        margin-bottom: 15px;
+        margin-bottom: 15px !important;
     }
     .stText {
         color: #333333 !important;
         font-size: 18px !important;
         line-height: 1.6 !important;
     }
-    /* Link YouTube fisso in alto a sinistra */
+    /* Link per il canale YouTube */
     .youtube-link {
-        position: fixed;
-        top: 10px;
-        left: 10px;
         color: #FF0000 !important; /* Rosso YouTube */
-        font-size: 16px !important;
         font-weight: bold !important;
         text-decoration: none !important;
     }
@@ -69,14 +71,18 @@ def get_css():
 # Applica il CSS
 st.markdown(get_css(), unsafe_allow_html=True)
 
-# Link al canale YouTube (fisso in alto a sinistra)
+# =============================
+# Titolo del configuratore
+# =============================
+st.markdown('<h1 class="stTitle">Configuratore Auto: Confronto Elettrica vs Termica</h1>', unsafe_allow_html=True)
+
+# Link al canale YouTube
 st.markdown(
-    '<a class="youtube-link" href="https://www.youtube.com/@giagualco" target="_blank">🎥 Canale YouTube</a>',
+    '<p class="stText">Scopri di più sul mio canale YouTube: '
+    '<a class="youtube-link" href="https://www.youtube.com/@giagualco" target="_blank">'
+    'Clicca qui per visitarlo!</a></p>',
     unsafe_allow_html=True
 )
-
-# Titolo principale
-st.markdown('<h1 class="stTitle">🔋 Confronto Auto Elettrica vs Termica ⛽</h1>', unsafe_allow_html=True)
 
 # =============================
 # Sidebar per input utente
@@ -156,7 +162,9 @@ def calcola_costi_e_emissioni(tipo_auto, consumo, km_annui, prezzo_carburante, p
         co2_emessa = (km_annui / 100) * consumo * 0.5  # Emissioni CO2 per kWh
     return costo_annuo, co2_emessa
 
-# Calcoli per Auto 1
+# =============================
+# Calcoli per le due auto
+# =============================
 costo_annuo_auto1, co2_auto1 = calcola_costi_e_emissioni(
     tipo_auto1,
     consumo_auto1,
@@ -164,8 +172,6 @@ costo_annuo_auto1, co2_auto1 = calcola_costi_e_emissioni(
     prezzo_benzina if tipo_auto1 == "Benzina" else prezzo_diesel,
     prezzo_energia
 )
-
-# Calcoli per Auto 2
 costo_annuo_auto2, co2_auto2 = calcola_costi_e_emissioni(
     tipo_auto2,
     consumo_auto2,
