@@ -31,6 +31,30 @@ prezzo_energia = st.sidebar.number_input("Prezzo energia elettrica (€/kWh)", v
 st.sidebar.header("Dati di utilizzo")
 km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
 
+# Caricamento dei file JSON da Google Takeout
+st.sidebar.header("Carica i file Google Takeout")
+uploaded_files = st.sidebar.file_uploader("Carica più file JSON", type=["json"], accept_multiple_files=True)
+
+# Variabili per il calcolo dei km annui e del tipo di percorso
+total_distance_km = None
+
+# Elaborazione dei file caricati
+if uploaded_files:
+    total_distance_km = 0
+    for uploaded_file in uploaded_files:
+        data = json.load(uploaded_file)
+
+        # Estrazione dei segmenti di percorso
+        activity_segments = [obj['activitySegment'] for obj in data["timelineObjects"] if 'activitySegment' in obj]
+
+        # Sommare i chilometri percorsi
+        for segment in activity_segments:
+            distance_km = segment.get('distance', 0) / 1000
+            total_distance_km += distance_km
+
+    st.sidebar.success(f"Dati caricati! Totale km percorsi: {int(total_distance_km)} km")
+    km_annui = int(total_distance_km)
+
 # Calcolo dei costi annuali
 costo_annuo_termico = (km_annui / 100) * consumo_termico_medio * prezzo_benzina
 costo_annuo_elettrico = (km_annui / 100) * consumo_elettrico_medio * prezzo_energia
