@@ -8,22 +8,23 @@ import plotly.graph_objects as go
 # 1. Configurazione Streamlit & CSS
 # =============================
 st.set_page_config(
-    page_title="Confronto Avanzato Auto",
+    page_title="Configuratore Avanzato Auto",
     page_icon="🚗",
     layout="wide"
 )
 
 def load_custom_css():
     """
-    Carica Google Fonts e regole CSS personalizzate
-    per un aspetto moderno e professionale.
+    Carica Google Fonts e regole CSS personalizzate,
+    includendo media queries per dispositivi mobili e
+    regolando spaziature, tipografia e layout per una migliore accessibilità.
     """
     css = """
     <style>
     /* Google Font: Roboto */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
 
-    html, body, [class*="css"]  {
+    html, body, [class*="css"] {
         font-family: 'Roboto', sans-serif;
         background-color: #FFFFFF;
         color: #333333;
@@ -50,12 +51,13 @@ def load_custom_css():
     }
     /* Pulsanti e widget di input */
     .stButton button {
-        background-color: #1ABC9C !important; /* Verde acqua */
+        background-color: #1ABC9C !important;
         color: #FFFFFF !important;
         border-radius: 5px !important;
         font-weight: 500 !important;
         padding: 0.6em 1.2em !important;
         border: none !important;
+        transition: background-color 0.3s ease;
     }
     .stButton button:hover {
         background-color: #16A085 !important;
@@ -65,12 +67,32 @@ def load_custom_css():
     }
     /* Link YouTube */
     .youtube-link {
-        color: #E52D27 !important; /* Rosso YouTube */
+        color: #E52D27 !important;
         text-decoration: none !important;
         font-weight: 700;
     }
     .youtube-link:hover {
         text-decoration: underline !important;
+    }
+    /* Media Queries per dispositivi mobili */
+    @media screen and (max-width: 768px) {
+        .main-title {
+            font-size: 28px !important;
+        }
+        .section-title {
+            font-size: 20px !important;
+        }
+        .description {
+            font-size: 14px !important;
+        }
+        /* Le colonne verranno visualizzate in verticale */
+        [data-testid="stHorizontalBlock"] {
+            flex-direction: column !important;
+        }
+        /* Riduci padding e margini */
+        .css-1d391kg, .css-1d391kg * {
+            padding: 0.5em !important;
+        }
     }
     </style>
     """
@@ -79,32 +101,31 @@ def load_custom_css():
 load_custom_css()
 
 # =============================
-# 2. Titolo e Link YouTube
+# 2. Titolo e Link al Canale YouTube
 # =============================
 st.markdown("<h1 class='main-title'>Configuratore Avanzato Auto</h1>", unsafe_allow_html=True)
 st.markdown(
     '<p class="description">'
-    'Confronta due veicoli con consumi differenti (urbano, extraurbano, autostrada) '
-    'e scopri i costi annui, le emissioni di CO₂ e il possibile break-even. '
-    '<br>Per approfondimenti, visita il mio '
-    '<a class="youtube-link" href="https://www.youtube.com/@giagualco" target="_blank">Canale YouTube</a>!</p>',
+    'Confronta due veicoli considerando consumi specifici per percorso (urbano, extraurbano, autostrada), '
+    'analizza costi annui, emissioni di CO₂ e calcola il break-even.<br>'
+    'Approfondisci sul mio <a class="youtube-link" href="https://www.youtube.com/@giagualco" target="_blank">Canale YouTube</a>!</p>',
     unsafe_allow_html=True
 )
 
 # =============================
-# 3. Sidebar: Dati Auto 1 & Auto 2
+# 3. Sidebar: Dati per i Veicoli
 # =============================
 st.sidebar.header("Dati del Veicolo 1")
 tipo_auto1 = st.sidebar.selectbox("Tipo di auto 1", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="auto1")
 modello_auto1 = st.sidebar.text_input("Modello auto 1", value="Auto 1", key="modello1")
 costo_iniziale_auto1 = st.sidebar.number_input("Prezzo d'acquisto (€)", value=25000, step=1000, format="%d", key="costo1")
 
-st.sidebar.subheader("Consumi Auto 1")
+st.sidebar.subheader("Consumi per Veicolo 1")
 if tipo_auto1 in ["Benzina", "Diesel", "Ibrido"]:
     consumo_urbano1 = st.sidebar.number_input("Urbano (L/100km)", value=7.0, step=0.1, format="%.1f", key="c_urb1")
     consumo_extra1 = st.sidebar.number_input("Extraurbano (L/100km)", value=5.5, step=0.1, format="%.1f", key="c_ext1")
     consumo_autostrada1 = st.sidebar.number_input("Autostrada (L/100km)", value=6.5, step=0.1, format="%.1f", key="c_aut1")
-else:  # Elettrico
+else:
     consumo_urbano1 = st.sidebar.number_input("Urbano (kWh/100km)", value=16.0, step=0.1, format="%.1f", key="c_urb1")
     consumo_extra1 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=13.0, step=0.1, format="%.1f", key="c_ext1")
     consumo_autostrada1 = st.sidebar.number_input("Autostrada (kWh/100km)", value=18.0, step=0.1, format="%.1f", key="c_aut1")
@@ -114,25 +135,24 @@ tipo_auto2 = st.sidebar.selectbox("Tipo di auto 2", ["Benzina", "Diesel", "Ibrid
 modello_auto2 = st.sidebar.text_input("Modello auto 2", value="Auto 2", key="modello2")
 costo_iniziale_auto2 = st.sidebar.number_input("Prezzo d'acquisto (€)", value=35000, step=1000, format="%d", key="costo2")
 
-st.sidebar.subheader("Consumi Auto 2")
+st.sidebar.subheader("Consumi per Veicolo 2")
 if tipo_auto2 in ["Benzina", "Diesel", "Ibrido"]:
     consumo_urbano2 = st.sidebar.number_input("Urbano (L/100km)", value=7.5, step=0.1, format="%.1f", key="c_urb2")
     consumo_extra2 = st.sidebar.number_input("Extraurbano (L/100km)", value=5.0, step=0.1, format="%.1f", key="c_ext2")
     consumo_autostrada2 = st.sidebar.number_input("Autostrada (L/100km)", value=6.0, step=0.1, format="%.1f", key="c_aut2")
-else:  # Elettrico
+else:
     consumo_urbano2 = st.sidebar.number_input("Urbano (kWh/100km)", value=17.0, step=0.1, format="%.1f", key="c_urb2")
     consumo_extra2 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=12.0, step=0.1, format="%.1f", key="c_ext2")
     consumo_autostrada2 = st.sidebar.number_input("Autostrada (kWh/100km)", value=20.0, step=0.1, format="%.1f", key="c_aut2")
 
 # =============================
-# 4. Sidebar: Percentuali di Guida & Carburanti
+# 4. Sidebar: Percentuali di Percorrenza e Costi Carburante/Energia
 # =============================
 st.sidebar.header("Percentuali di Guida (%)")
 perc_urbano = st.sidebar.slider("Urbano (%)", min_value=0, max_value=100, value=40, step=5, key="perc_urb")
 perc_extra = st.sidebar.slider("Extraurbano (%)", min_value=0, max_value=100, value=40, step=5, key="perc_ext")
 perc_autostrada = st.sidebar.slider("Autostrada (%)", min_value=0, max_value=100, value=20, step=5, key="perc_aut")
 
-# Assicuriamoci che la somma sia 100
 if (perc_urbano + perc_extra + perc_autostrada) != 100:
     st.sidebar.warning("La somma delle percentuali deve essere 100%.")
 
@@ -145,9 +165,9 @@ st.sidebar.header("Dati di Utilizzo")
 km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
 
 # =============================
-# 5. Caricamento File JSON
+# 5. Caricamento File JSON (Google Takeout)
 # =============================
-st.sidebar.header("Carica File JSON (Google Takeout)")
+st.sidebar.header("Carica File JSON")
 uploaded_files = st.sidebar.file_uploader("Seleziona uno o più file JSON", type=["json"], accept_multiple_files=True)
 
 if uploaded_files:
@@ -171,14 +191,10 @@ if uploaded_files:
 # =============================
 # 6. Funzioni di Calcolo
 # =============================
-
 def fattore_co2(tipo_auto):
     """
-    Ritorna il fattore di emissione (kg CO₂ per unità di carburante)
-    - Benzina: ~2.3 kg CO₂/L
-    - Diesel: ~2.6 kg CO₂/L
-    - Ibrido: ipotizziamo ~2.0 kg CO₂/L (semplificato)
-    - Elettrico: ~0.5 kg CO₂/kWh (stima media)
+    Ritorna il fattore di emissione (kg CO₂ per unità)
+    per il tipo di veicolo.
     """
     if tipo_auto == "Benzina":
         return 2.3
@@ -189,141 +205,110 @@ def fattore_co2(tipo_auto):
     else:  # Elettrico
         return 0.5
 
-def prezzo_carburante(tipo_auto, p_benzina, p_diesel, p_energia):
+def prezzo_unita(tipo_auto, p_benzina, p_diesel, p_energia):
     """
-    Ritorna il prezzo unitaro (€/L o €/kWh) in base al tipo di auto.
+    Ritorna il prezzo unitario (€/L o €/kWh)
+    in base al tipo di auto.
     """
-    if tipo_auto == "Benzina":
+    if tipo_auto in ["Benzina", "Ibrido"]:
         return p_benzina
     elif tipo_auto == "Diesel":
         return p_diesel
-    elif tipo_auto == "Ibrido":
-        # Assumiamo benzina come base, ma potresti introdurre un mix
-        return p_benzina
-    else:  # Elettrico
+    else:
         return p_energia
 
-def calcola_consumo_medio(cons_urbano, cons_extra, cons_autostrada, perc_urb, perc_ext, perc_aut):
+def calcola_consumo_medio(cons_urb, cons_ext, cons_aut, perc_urb, perc_ext, perc_aut):
     """
-    Calcola il consumo medio PONDERATO (L/100km o kWh/100km) 
-    in base alle percentuali di percorrenza in urbano, extraurbano e autostrada.
+    Calcola il consumo medio ponderato (L/100km o kWh/100km)
+    in base alle percentuali di percorrenza.
     """
     tot = perc_urb + perc_ext + perc_aut
     if tot == 0:
-        return (cons_urbano + cons_extra + cons_autostrada) / 3  # fallback
-    # Weighted average
-    consumo_ponderato = (
-        cons_urbano * (perc_urb / 100.0) +
-        cons_extra * (perc_ext / 100.0) +
-        cons_autostrada * (perc_aut / 100.0)
-    )
-    return consumo_ponderato
+        return (cons_urb + cons_ext + cons_aut) / 3
+    return cons_urb * (perc_urb / 100) + cons_ext * (perc_ext / 100) + cons_aut * (perc_aut / 100)
 
-def calcola_costi_ed_emissioni_annui(tipo_auto, consumo_urb, consumo_ext, consumo_aut, 
-                                     perc_urb, perc_ext, perc_aut,
-                                     prezzo_ben, prezzo_die, prezzo_en, km_annui):
+def calcola_costi_ed_emissioni(tipo_auto, cons_urb, cons_ext, cons_aut, perc_urb, perc_ext, perc_aut,
+                                p_benz, p_die, p_en, km_annui):
     """
-    Calcola costo annuo e emissioni annue (kg CO₂) per un veicolo con
-    consumi differenziati e percentuali di percorrenza.
+    Calcola il costo annuo e le emissioni annue (kg CO₂) per un veicolo,
+    tenendo conto del consumo medio ponderato.
     """
-    # 1) Calcolo del consumo medio
-    consumo_medio = calcola_consumo_medio(consumo_urb, consumo_ext, consumo_aut, perc_urb, perc_ext, perc_aut)
-
-    # 2) Carburante o energia
-    p_unitario = prezzo_carburante(tipo_auto, prezzo_ben, prezzo_die, prezzo_en)
-
-    # 3) Fattore emissioni
+    consumo_medio = calcola_consumo_medio(cons_urb, cons_ext, cons_aut, perc_urb, perc_ext, perc_aut)
+    p_unitario = prezzo_unita(tipo_auto, p_benz, p_die, p_en)
     co2_factor = fattore_co2(tipo_auto)
-
-    # 4) Costo annuo
-    #   (km_annui / 100) * consumo_medio => quanti litri/kWh all'anno
-    #   poi moltiplichiamo per il prezzo unitario
     costo_annuo = (km_annui / 100.0) * consumo_medio * p_unitario
-
-    # 5) Emissioni annue
     co2_annua = (km_annui / 100.0) * consumo_medio * co2_factor
-
     return costo_annuo, co2_annua
 
-def calcola_break_even(costo_iniziale1, annuo1, costo_iniziale2, annuo2):
+def calcola_break_even(capex1, annuo1, capex2, annuo2):
     """
-    Se un'auto costa di più inizialmente ma ha costi annui minori,
-    restituisce in quanti anni si ripaga la differenza (float).
-    Altrimenti None.
+    Calcola in quanti anni si raggiunge il break-even tra due veicoli.
+    Restituisce il tempo di recupero (anni) se esiste, altrimenti None.
     """
-    # Differenza iniziale (auto2 - auto1)
-    delta_iniziale = costo_iniziale2 - costo_iniziale1
+    delta_capex = capex2 - capex1
     delta_annuo = annuo1 - annuo2
-
-    # Se auto2 è più costosa e risparmia annualmente
-    if delta_iniziale > 0 and delta_annuo > 0:
-        return delta_iniziale / delta_annuo
-
-    # Prova l'altro scenario (auto1 più costosa)
-    delta_iniziale_bis = costo_iniziale1 - costo_iniziale2
+    if delta_capex > 0 and delta_annuo > 0:
+        return delta_capex / delta_annuo
+    delta_capex_bis = capex1 - capex2
     delta_annuo_bis = annuo2 - annuo1
-    if delta_iniziale_bis > 0 and delta_annuo_bis > 0:
-        return delta_iniziale_bis / delta_annuo_bis
-
+    if delta_capex_bis > 0 and delta_annuo_bis > 0:
+        return delta_capex_bis / delta_annuo_bis
     return None
 
 # =============================
-# 7. Calcoli finali
+# 7. Calcoli Finali
 # =============================
-costo_annuo_auto1, co2_auto1 = calcola_costi_ed_emissioni_annui(
+costo_annuo_auto1, co2_auto1 = calcola_costi_ed_emissioni(
     tipo_auto1, consumo_urbano1, consumo_extra1, consumo_autostrada1,
     perc_urbano, perc_extra, perc_autostrada,
     prezzo_benzina, prezzo_diesel, prezzo_energia,
     km_annui
 )
 
-costo_annuo_auto2, co2_auto2 = calcola_costi_ed_emissioni_annui(
+costo_annuo_auto2, co2_auto2 = calcola_costi_ed_emissioni(
     tipo_auto2, consumo_urbano2, consumo_extra2, consumo_autostrada2,
     perc_urbano, perc_extra, perc_autostrada,
     prezzo_benzina, prezzo_diesel, prezzo_energia,
     km_annui
 )
 
-anni_pareggio = calcola_break_even(
-    costo_iniziale_auto1, costo_annuo_auto1,
-    costo_iniziale_auto2, costo_annuo_auto2
-)
+anni_pareggio = calcola_break_even(costo_iniziale_auto1, costo_annuo_auto1,
+                                    costo_iniziale_auto2, costo_annuo_auto2)
 
 # =============================
 # 8. Output Testuale
 # =============================
 st.subheader("Riepilogo del Confronto")
 
-col_r1, col_r2 = st.columns(2)
-with col_r1:
+col1, col2 = st.columns(2)
+with col1:
     st.write(f"**{modello_auto1} ({tipo_auto1})**")
-    st.write(f"- **Costo iniziale**: €{int(costo_iniziale_auto1):,}")
-    st.write(f"- **Costo annuo (ponderato)**: €{int(costo_annuo_auto1):,}")
-    st.write(f"- **Emissioni annue**: {int(co2_auto1):,} kg CO₂")
-
-with col_r2:
+    st.write(f"- **Costo iniziale:** €{int(costo_iniziale_auto1):,}")
+    st.write(f"- **Costo annuo (ponderato):** €{int(costo_annuo_auto1):,}")
+    st.write(f"- **Emissioni annue:** {int(co2_auto1):,} kg CO₂")
+with col2:
     st.write(f"**{modello_auto2} ({tipo_auto2})**")
-    st.write(f"- **Costo iniziale**: €{int(costo_iniziale_auto2):,}")
-    st.write(f"- **Costo annuo (ponderato)**: €{int(costo_annuo_auto2):,}")
-    st.write(f"- **Emissioni annue**: {int(co2_auto2):,} kg CO₂")
+    st.write(f"- **Costo iniziale:** €{int(costo_iniziale_auto2):,}")
+    st.write(f"- **Costo annuo (ponderato):** €{int(costo_annuo_auto2):,}")
+    st.write(f"- **Emissioni annue:** {int(co2_auto2):,} kg CO₂")
 
 if anni_pareggio:
-    st.success(f"**Tempo di ritorno dell'investimento**: circa {anni_pareggio:.1f} anni.")
+    st.success(f"Tempo di ritorno dell'investimento: circa {anni_pareggio:.1f} anni.")
 else:
     st.warning("Non si raggiunge un break-even con i dati attuali o i costi sono equivalenti.")
 
 # =============================
-# 9. Grafico Costo Cumulativo
+# 9. Grafico: Costo Cumulativo (10 anni)
 # =============================
 st.subheader("Confronto del Costo Cumulativo (10 anni)")
 
-anni_range = np.arange(0, 11)
-cumul_auto1 = [costo_iniziale_auto1 + (anno * costo_annuo_auto1) for anno in anni_range]
-cumul_auto2 = [costo_iniziale_auto2 + (anno * costo_annuo_auto2) for anno in anni_range]
+anni = np.arange(0, 11)
+cumul_auto1 = [costo_iniziale_auto1 + anno * costo_annuo_auto1 for anno in anni]
+cumul_auto2 = [costo_iniziale_auto2 + anno * costo_annuo_auto2 for anno in anni]
 
 fig_costi = go.Figure()
 fig_costi.add_trace(go.Scatter(
-    x=anni_range, 
+    x=anni,
     y=cumul_auto1,
     mode='lines+markers',
     name=f"{modello_auto1} ({tipo_auto1})",
@@ -331,7 +316,7 @@ fig_costi.add_trace(go.Scatter(
     marker=dict(size=6)
 ))
 fig_costi.add_trace(go.Scatter(
-    x=anni_range,
+    x=anni,
     y=cumul_auto2,
     mode='lines+markers',
     name=f"{modello_auto2} ({tipo_auto2})",
@@ -348,24 +333,24 @@ fig_costi.update_layout(
 st.plotly_chart(fig_costi, use_container_width=True)
 
 # =============================
-# 10. Grafico Emissioni Annue
+# 10. Grafico: Emissioni Annue
 # =============================
 st.subheader("Confronto delle Emissioni di CO₂ (annue)")
 
-fig_emissioni = go.Figure(data=[
+fig_emiss = go.Figure(data=[
     go.Bar(
         x=[f"{modello_auto1} ({tipo_auto1})", f"{modello_auto2} ({tipo_auto2})"],
         y=[co2_auto1, co2_auto2],
         marker_color=['#1ABC9C', '#E67E22']
     )
 ])
-fig_emissioni.update_layout(
+fig_emiss.update_layout(
     title="Emissioni di CO₂ (kg/anno)",
     xaxis_title="Modello",
-    yaxis_title="CO₂ (kg/anno)",
+    yaxis_title="Emissioni (kg/anno)",
     template="simple_white"
 )
-st.plotly_chart(fig_emissioni, use_container_width=True)
+st.plotly_chart(fig_emiss, use_container_width=True)
 
 # =============================
 # 11. Conclusione
