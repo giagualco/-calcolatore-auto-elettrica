@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Configurazione della pagina
 st.set_page_config(page_title="Confronto Auto Elettrica vs Termica", page_icon="🚗", layout="wide")
@@ -91,30 +92,42 @@ with col2:
     st.metric(f"Costo annuale {modello_elettrico}", f"€{int(costo_annuo_elettrico):,}")
     st.metric(f"Consumo medio {modello_elettrico}", f"{consumo_elettrico_medio:.1f} kWh/100km")
 
-# Grafico con doppia asse (euro e CO2 in funzione degli anni)
+# Scelta del tipo di grafico
 st.subheader("Tempo di ritorno dell'investimento")
+grafico_scelto = st.radio("Seleziona il tipo di grafico:", ["Grafico a barre", "Grafico a linee"])
 
+# Creazione dati per il grafico
 if anni_pareggio:
-    anni = list(range(1, anni_pareggio + 2))  # +2 per un punto extra sulla curva
-    costi_risparmiati = [delta_costo_annuo * i for i in anni]
-    co2_risparmiata_totale = [co2_risparmiata * i for i in anni]
+    anni = np.arange(1, anni_pareggio + 2)
+    costi_risparmiati = anni * delta_costo_annuo
+    co2_risparmiata_totale = anni * co2_risparmiata
 
-    fig, ax1 = plt.subplots(figsize=(8, 5))
+    if grafico_scelto == "Grafico a barre":
+        fig, ax1 = plt.subplots(figsize=(8, 5))
+        ax1.bar(anni, costi_risparmiati, color='blue', alpha=0.7, label='Risparmio economico (€)')
+        ax1.set_xlabel("Anni di utilizzo")
+        ax1.set_ylabel("Risparmio economico (€)", color='blue')
+        ax1.tick_params(axis="y", labelcolor="blue")
 
-    ax1.set_xlabel("Anni di utilizzo")
-    ax1.set_ylabel("Risparmio economico (€)", color="blue")
-    ax1.plot(anni, costi_risparmiati, label="Risparmio economico", color="blue", marker="o")
-    ax1.tick_params(axis="y", labelcolor="blue")
+        ax2 = ax1.twinx()
+        ax2.bar(anni, co2_risparmiata_totale, color='green', alpha=0.7, label='CO₂ risparmiata (kg)')
+        ax2.set_ylabel("CO₂ risparmiata (kg)", color='green')
+        ax2.tick_params(axis="y", labelcolor="green")
 
-    ax2 = ax1.twinx()
-    ax2.set_ylabel("CO₂ risparmiata (kg)", color="green")
-    ax2.plot(anni, co2_risparmiata_totale, label="CO₂ risparmiata", color="green", marker="s")
-    ax2.tick_params(axis="y", labelcolor="green")
+        fig.tight_layout()
+        st.pyplot(fig)
 
-    fig.tight_layout()
-    st.pyplot(fig)
-else:
-    st.warning("Il risparmio economico non è sufficiente per determinare un tempo di ritorno dell'investimento.")
-    
-st.markdown("Confronta i costi e scegli la soluzione più efficiente e sostenibile.")
+    else:
+        fig, ax3 = plt.subplots(figsize=(8, 5))
+        ax3.plot(anni, costi_risparmiati, label="Risparmio economico (€)", color="blue", marker="o", linestyle="-")
+        ax3.set_xlabel("Anni di utilizzo")
+        ax3.set_ylabel("Risparmio economico (€)", color="blue")
+        ax3.tick_params(axis="y", labelcolor="blue")
 
+        ax4 = ax3.twinx()
+        ax4.plot(anni, co2_risparmiata_totale, label="CO₂ risparmiata (kg)", color="green", marker="s", linestyle="--")
+        ax4.set_ylabel("CO₂ risparmiata (kg)", color="green")
+        ax4.tick_params(axis="y", labelcolor="green")
+
+        fig.tight_layout()
+        st.pyplot(fig)
