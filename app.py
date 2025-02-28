@@ -70,6 +70,7 @@ prezzo_energia = st.sidebar.number_input("Prezzo energia elettrica (€/kWh)", v
 # Dati di utilizzo
 st.sidebar.header("Dati di utilizzo")
 km_annui = st.sidebar.number_input("Chilometraggio annuo (km)", value=15000, step=500, format="%d")
+anni_possesso = st.sidebar.number_input("Durata del possesso (anni)", value=5, step=1, format="%d")
 
 # Caricamento multiplo di file Google Takeout
 st.sidebar.header("Carica i file Google Takeout")
