@@ -31,37 +31,6 @@ prezzo_energia = st.sidebar.number_input("Prezzo energia elettrica (€/kWh)", v
 st.sidebar.header("Dati di utilizzo")
 km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
 
-# Distribuzione percentuale del tipo di percorso
-st.sidebar.header("Distribuzione del percorso (%)")
-perc_citta = st.sidebar.slider("Città", 0, 100, 30)
-perc_extraurbano = st.sidebar.slider("Strada Extraurbana", 0, 100, 50)
-perc_autostrada = 100 - perc_citta - perc_extraurbano
-st.sidebar.write(f"Autostrada: {perc_autostrada}%")
-
-# Sezione per il caricamento dei file JSON da Google Takeout
-st.sidebar.header("Carica i file Google Takeout")
-uploaded_files = st.sidebar.file_uploader("Carica più file JSON", type=["json"], accept_multiple_files=True)
-
-# Variabili per il calcolo dei km annui e del tipo di percorso
-total_distance_km = None
-
-# Elaborazione dei file caricati
-if uploaded_files:
-    total_distance_km = 0
-    for uploaded_file in uploaded_files:
-        data = json.load(uploaded_file)
-
-        # Estrazione dei segmenti di percorso
-        activity_segments = [obj['activitySegment'] for obj in data["timelineObjects"] if 'activitySegment' in obj]
-
-        # Sommare i chilometri percorsi
-        for segment in activity_segments:
-            distance_km = segment.get('distance', 0) / 1000
-            total_distance_km += distance_km
-
-    st.sidebar.success(f"Dati caricati! Totale km percorsi: {int(total_distance_km)} km")
-    km_annui = int(total_distance_km)
-
 # Calcolo dei costi annuali
 costo_annuo_termico = (km_annui / 100) * consumo_termico_medio * prezzo_benzina
 costo_annuo_elettrico = (km_annui / 100) * consumo_elettrico_medio * prezzo_energia
@@ -75,66 +44,42 @@ if delta_costo_annuo > 0:
 else:
     anni_pareggio = None
 
-# Calcolo delle emissioni di CO2 (indicativo: 2.3 kg CO2 per litro di benzina, 0.5 kg CO2 per kWh)
+# Simulazione dati per CO₂
 co2_termica = (km_annui / 100) * consumo_termico_medio * 2.3
 co2_elettrica = (km_annui / 100) * consumo_elettrico_medio * 0.5
 co2_risparmiata = co2_termica - co2_elettrica
 
-# Visualizzazione dei risultati
-st.subheader("Risultati del confronto")
+# Creazione dei grafici
 
-col1, col2 = st.columns(2)
-with col1:
-    st.metric(f"Costo annuale {modello_termico}", f"€{int(costo_annuo_termico):,}")
-    st.metric(f"Consumo medio {modello_termico}", f"{consumo_termico_medio:.1f} L/100km")
+# 1️⃣ Grafico del tempo di ritorno dell'investimento economico (€)
+st.subheader("Tempo di ritorno dell'investimento economico")
+anni = np.arange(0, anni_pareggio + 2) if anni_pareggio else np.arange(0, 11)
 
-with col2:
-    st.metric(f"Costo annuale {modello_elettrico}", f"€{int(costo_annuo_elettrico):,}")
-    st.metric(f"Consumo medio {modello_elettrico}", f"{consumo_elettrico_medio:.1f} kWh/100km")
+costo_totale_benzina = prezzo_termico + anni * costo_annuo_termico
+costo_totale_elettrico = prezzo_elettrico + anni * costo_annuo_elettrico
 
-# Scelta del tipo di grafico
-st.subheader("Tempo di ritorno dell'investimento")
-grafico_scelto = st.radio("Seleziona il tipo di grafico:", ["Grafico a barre", "Grafico a linee"])
+fig1, ax1 = plt.subplots(figsize=(8, 5))
+ax1.plot(anni, costo_totale_benzina, label="Auto a Benzina", color="red", linestyle="-", linewidth=2)
+ax1.plot(anni, costo_totale_elettrico, label="Auto Elettrica", color="blue", linestyle="-", linewidth=2)
+ax1.set_xlabel("Anni di utilizzo")
+ax1.set_ylabel("Costo cumulativo (€)")
+ax1.set_title("Tempo di ritorno dell'investimento economico")
+ax1.legend()
+ax1.grid(True)
+st.pyplot(fig1)
 
-# Creazione dati per il grafico
-if anni_pareggio:
-    anni = np.arange(1, anni_pareggio + 2)
-    costi_risparmiati = anni * delta_costo_annuo
-    co2_risparmiata_totale = anni * co2_risparmiata
+# 2️⃣ Grafico del tempo di ritorno dell'investimento in CO₂
+st.subheader("Tempo di ritorno dell'investimento in CO₂")
 
-    if grafico_scelto == "Grafico a barre":
-        fig, ax1 = plt.subplots(figsize=(8, 5))
-        ax1.bar(anni, costi_risparmiati, color='blue', alpha=0.7, label='Risparmio economico (€)')
-        ax1.set_xlabel("Anni di utilizzo")
-        ax1.set_ylabel("Risparmio economico (€)", color='blue')
-        ax1.tick_params(axis="y", labelcolor="blue")
+co2_totale_benzina = anni * co2_termica
+co2_totale_elettrica = anni * co2_elettrica
 
-        ax2 = ax1.twinx()
-        ax2.bar(anni, co2_risparmiata_totale, color='green', alpha=0.7, label='CO₂ risparmiata (kg)')
-        ax2.set_ylabel("CO₂ risparmiata (kg)", color='green')
-        ax2.tick_params(axis="y", labelcolor="green")
-
-        fig.tight_layout()
-        st.pyplot(fig)
-
-    else:
-        fig, ax3 = plt.subplots(figsize=(8, 5))
-        ax3.plot(anni, costi_risparmiati, label="Risparmio economico (€)", color="blue", marker="o", linestyle="-")
-        ax3.set_xlabel("Anni di utilizzo")
-        ax3.set_ylabel("Risparmio economico (€)", color="blue")
-        ax3.tick_params(axis="y", labelcolor="blue")
-
-        ax4 = ax3.twinx()
-        ax4.plot(anni, co2_risparmiata_totale, label="CO₂ risparmiata (kg)", color="green", marker="s", linestyle="--")
-        ax4.set_ylabel("CO₂ risparmiata (kg)", color="green")
-        ax4.tick_params(axis="y", labelcolor="green")
-
-        fig.tight_layout()
-        st.pyplot(fig)
-
-import matplotlib.pyplot as plt
-import numpy as np
-
-
-
-
+fig2, ax2 = plt.subplots(figsize=(8, 5))
+ax2.plot(anni, co2_totale_benzina, label="Auto a Benzina", color="red", linestyle="-", linewidth=2)
+ax2.plot(anni, co2_totale_elettrica, label="Auto Elettrica", color="blue", linestyle="-", linewidth=2)
+ax2.set_xlabel("Anni di utilizzo")
+ax2.set_ylabel("CO₂ cumulativa (kg)")
+ax2.set_title("Tempo di ritorno dell'investimento in CO₂")
+ax2.legend()
+ax2.grid(True)
+st.pyplot(fig2)
