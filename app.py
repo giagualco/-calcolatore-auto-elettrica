@@ -1,97 +1,97 @@
 import streamlit as st
 import pandas as pd
-import json
-import matplotlib.pyplot as plt
 import numpy as np
+import plotly.express as px
 
-# Configurazione della pagina
+# =============================
+# Caricamento font & CSS extra
+# =============================
+def load_custom_css():
+    """
+    Carica Google Fonts e applica alcune regole CSS 
+    per migliorare tipografia e layout.
+    """
+    custom_css = """
+    <style>
+    /* Caricamento Google Font: Roboto */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Roboto', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 700;
+    }
+    .main-title {
+        color: #2C3E50;
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+    .section-title {
+        color: #2C3E50;
+        font-size: 24px;
+        margin-top: 40px;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+    .description {
+        color: #555555;
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+    /* Pulsanti e slider personalizzati */
+    .stButton button {
+        background-color: #1ABC9C !important;
+        color: #FFFFFF !important;
+        border-radius: 5px !important;
+        font-weight: 500 !important;
+        padding: 0.6em 1.2em !important;
+    }
+    .stButton button:hover {
+        background-color: #16A085 !important;
+    }
+    /* Box input (number_input, text_input, ecc.) */
+    .stTextInput, .stNumberInput, .stSelectbox {
+        margin-bottom: 1em;
+    }
+    /* Rimozione del margine eccessivo sotto i plot */
+    .element-container {
+        padding-bottom: 0 !important;
+    }
+    </style>
+    """
+    st.markdown(custom_css, unsafe_allow_html=True)
+
+# =============================
+# Configurazione generale
+# =============================
 st.set_page_config(
-    page_title="Configuratore Auto: Confronto Elettrica vs Termica",
+    page_title="Configuratore Auto - Elettrica vs Termica",
     page_icon="🚗",
     layout="wide"
 )
 
-# =============================
-# CSS forzato ad alto contrasto
-# =============================
-def get_css():
-    """
-    Forza uno sfondo bianco e testo scuro su tutta l'app,
-    inclusa la sidebar e i widget di Streamlit.
-    """
-    css = """
-    <style>
-    /* Forza sfondo bianco e testo scuro su tutti i contenitori e widget */
-    html, body, [class*="css"] {
-        background-color: #FFFFFF !important;
-        color: #333333 !important;
-    }
-    /* Sidebar: sfondo bianco e testo scuro */
-    [data-testid="stSidebar"] {
-        background-color: #FFFFFF !important;
-    }
-    [data-testid="stSidebar"] * {
-        color: #333333 !important;
-    }
-    /* Forza colore scuro anche nei file uploader, bottoni e alert */
-    [data-testid="stFileUploader"] * {
-        color: #333333 !important;
-    }
-    /* Titoli personalizzati */
-    .stTitle {
-        color: #2C3E50 !important;
-        font-size: 32px !important;
-        font-weight: bold !important;
-        margin-bottom: 20px !important;
-    }
-    .stSubtitle {
-        color: #34495E !important;
-        font-size: 24px !important;
-        font-weight: bold !important;
-        margin-bottom: 15px !important;
-    }
-    .stText {
-        color: #333333 !important;
-        font-size: 18px !important;
-        line-height: 1.6 !important;
-    }
-    /* Link per il canale YouTube */
-    .youtube-link {
-        color: #FF0000 !important; /* Rosso YouTube */
-        font-weight: bold !important;
-        text-decoration: none !important;
-    }
-    .youtube-link:hover {
-        text-decoration: underline !important;
-    }
-    </style>
-    """
-    return css
-
-# Applica il CSS
-st.markdown(get_css(), unsafe_allow_html=True)
+# Carica lo stile personalizzato
+load_custom_css()
 
 # =============================
-# Titolo del configuratore
+# Header / Titolo
 # =============================
-st.markdown('<h1 class="stTitle">Configuratore Auto: Confronto Elettrica vs Termica</h1>', unsafe_allow_html=True)
-
-# Link al canale YouTube
-st.markdown(
-    '<p class="stText">Scopri di più sul mio canale YouTube: '
-    '<a class="youtube-link" href="https://www.youtube.com/@giagualco" target="_blank">'
-    'Clicca qui per visitarlo!</a></p>',
-    unsafe_allow_html=True
-)
+st.markdown("<h1 class='main-title'>Configuratore Auto</h1>", unsafe_allow_html=True)
+st.write("Benvenuto nel **Configuratore Auto**: qui puoi confrontare i costi e le emissioni di diverse tipologie di veicoli.")
 
 # =============================
-# Sidebar per input utente
+# Layout a sezioni e colonne
 # =============================
-with st.sidebar:
-    st.markdown('<h2 class="stSubtitle">🚗 Dati delle Auto</h2>', unsafe_allow_html=True)
+st.markdown("<div class='section-title'>1. Inserisci i Dati delle Auto</div>", unsafe_allow_html=True)
+st.markdown("<p class='description'>Compila i campi per confrontare due modelli (ad es. un'auto elettrica e una a benzina).</p>", unsafe_allow_html=True)
 
-    # Auto 1
-    st.markdown("**Auto 1**")
+# Sezione input in due colonne
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("Auto 1")
     tipo_auto1 = st.selectbox("Tipo di auto 1", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="auto1")
     modello_auto1 = st.text_input("Modello auto 1", value="Auto 1", key="modello1")
     costo_iniziale_auto1 = st.number_input("Prezzo d'acquisto (€)", value=25000, step=1000, format="%d", key="costo1")
@@ -100,8 +100,8 @@ with st.sidebar:
     else:
         consumo_auto1 = st.number_input("Consumo medio (kWh/100km)", value=15, step=1, format="%d", key="consumo1")
 
-    # Auto 2
-    st.markdown("**Auto 2**")
+with col2:
+    st.subheader("Auto 2")
     tipo_auto2 = st.selectbox("Tipo di auto 2", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="auto2")
     modello_auto2 = st.text_input("Modello auto 2", value="Auto 2", key="modello2")
     costo_iniziale_auto2 = st.number_input("Prezzo d'acquisto (€)", value=35000, step=1000, format="%d", key="costo2")
@@ -110,151 +110,104 @@ with st.sidebar:
     else:
         consumo_auto2 = st.number_input("Consumo medio (kWh/100km)", value=15, step=1, format="%d", key="consumo2")
 
-    # Costi carburante e energia
-    st.markdown('<h2 class="stSubtitle">💰 Costi del Carburante e dell\'Energia</h2>', unsafe_allow_html=True)
+# =============================
+# Altri dati: Carburante, Energia, Chilometri annui
+# =============================
+st.markdown("<div class='section-title'>2. Costi del Carburante e Dati di Utilizzo</div>", unsafe_allow_html=True)
+st.markdown("<p class='description'>Imposta i prezzi di benzina, diesel ed energia elettrica, oltre ai km percorsi in un anno.</p>", unsafe_allow_html=True)
+
+col3, col4, col5 = st.columns(3)
+
+with col3:
     prezzo_benzina = st.number_input("Prezzo benzina (€/L)", value=1.90, step=0.01, format="%.2f", key="benzina")
     prezzo_diesel = st.number_input("Prezzo diesel (€/L)", value=1.80, step=0.01, format="%.2f", key="diesel")
+with col4:
     prezzo_energia = st.number_input("Prezzo energia elettrica (€/kWh)", value=0.25, step=0.01, format="%.2f", key="energia")
-
-    # Dati di utilizzo
-    st.markdown('<h2 class="stSubtitle">📊 Dati di Utilizzo</h2>', unsafe_allow_html=True)
+with col5:
     km_annui = st.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
-
-    # Caricamento file JSON di Google
-    st.markdown('<h2 class="stSubtitle">📂 Carica File JSON di Google</h2>', unsafe_allow_html=True)
-    uploaded_files = st.file_uploader("Carica i file JSON di Google Takeout", type=["json"], accept_multiple_files=True)
-
-    if uploaded_files:
-        total_distance_km = 0
-        for uploaded_file in uploaded_files:
-            try:
-                data = json.load(uploaded_file)
-                activity_segments = [
-                    obj['activitySegment']
-                    for obj in data.get("timelineObjects", [])
-                    if 'activitySegment' in obj
-                ]
-                for segment in activity_segments:
-                    total_distance_km += segment.get('distance', 0) / 1000
-            except Exception as e:
-                st.error(f"Errore nel caricamento del file {uploaded_file.name}: {e}")
-        if total_distance_km > 0:
-            st.success(f"📊 Dati caricati! Totale km percorsi: {int(total_distance_km)} km")
-            km_annui = int(total_distance_km)
 
 # =============================
 # Funzione di calcolo costi ed emissioni
 # =============================
-def calcola_costi_e_emissioni(tipo_auto, consumo, km_annui, prezzo_carburante, prezzo_energia):
+def calcola_costi_e_emissioni(tipo_auto, consumo, km_annui, prezzo_benzina, prezzo_diesel, prezzo_energia):
     """
-    Calcola i costi annui e le emissioni di CO2 per una specifica tipologia di auto.
-    - tipo_auto: "Benzina", "Diesel", "Ibrido" o "Elettrico"
-    - consumo: L/100km o kWh/100km
-    - km_annui: chilometri percorsi in un anno
-    - prezzo_carburante: costo per L (benzina/diesel) se l'auto non è elettrica
-    - prezzo_energia: costo per kWh se l'auto è elettrica
+    Calcola i costi annui e le emissioni di CO2 in base al tipo di auto.
     """
-    if tipo_auto in ["Benzina", "Diesel", "Ibrido"]:
-        costo_annuo = (km_annui / 100) * consumo * prezzo_carburante
-        co2_emessa = (km_annui / 100) * consumo * 2.3  # Emissioni CO2 per litro di carburante
-    else:
+    if tipo_auto == "Benzina":
+        costo_annuo = (km_annui / 100) * consumo * prezzo_benzina
+        co2_emessa = (km_annui / 100) * consumo * 2.3  # kg CO2 per litro di benzina
+    elif tipo_auto == "Diesel":
+        costo_annuo = (km_annui / 100) * consumo * prezzo_diesel
+        co2_emessa = (km_annui / 100) * consumo * 2.6  # kg CO2 per litro di diesel (circa)
+    elif tipo_auto == "Ibrido":
+        # Stima semplificata, assume un consumo medio a metà tra benzina e un piccolo vantaggio
+        costo_annuo = (km_annui / 100) * consumo * (prezzo_benzina * 0.8)
+        co2_emessa = (km_annui / 100) * consumo * 2.0
+    else:  # Elettrico
         costo_annuo = (km_annui / 100) * consumo * prezzo_energia
-        co2_emessa = (km_annui / 100) * consumo * 0.5  # Emissioni CO2 per kWh
+        co2_emessa = (km_annui / 100) * consumo * 0.5  # kg CO2 per kWh (stima generica)
     return costo_annuo, co2_emessa
 
 # =============================
-# Calcoli per le due auto
+# Calcolo e risultati
 # =============================
-costo_annuo_auto1, co2_auto1 = calcola_costi_e_emissioni(
-    tipo_auto1,
-    consumo_auto1,
-    km_annui,
-    prezzo_benzina if tipo_auto1 == "Benzina" else prezzo_diesel,
-    prezzo_energia
-)
-costo_annuo_auto2, co2_auto2 = calcola_costi_e_emissioni(
-    tipo_auto2,
-    consumo_auto2,
-    km_annui,
-    prezzo_benzina if tipo_auto2 == "Benzina" else prezzo_diesel,
-    prezzo_energia
-)
+costo1, co2_1 = calcola_costi_e_emissioni(tipo_auto1, consumo_auto1, km_annui, prezzo_benzina, prezzo_diesel, prezzo_energia)
+costo2, co2_2 = calcola_costi_e_emissioni(tipo_auto2, consumo_auto2, km_annui, prezzo_benzina, prezzo_diesel, prezzo_energia)
 
-# =============================
+st.markdown("<div class='section-title'>3. Risultati e Confronto</div>", unsafe_allow_html=True)
+st.markdown("<p class='description'>Visualizza il riepilogo di costi ed emissioni per entrambe le auto.</p>", unsafe_allow_html=True)
+
 # Riepilogo testuale
-# =============================
-st.markdown('<h2 class="stSubtitle">🔎 Riepilogo del Confronto</h2>', unsafe_allow_html=True)
-
-riepilogo_testuale = f"""
-- **Costo annuo di utilizzo**:
-  - **{modello_auto1}** ({tipo_auto1}): €{int(costo_annuo_auto1):,} all'anno
-  - **{modello_auto2}** ({tipo_auto2}): €{int(costo_annuo_auto2):,} all'anno
-
-- **Emissioni di CO₂**:
-  - **{modello_auto1}** ({tipo_auto1}): {int(co2_auto1)} kg di CO₂ all'anno
-  - **{modello_auto2}** ({tipo_auto2}): {int(co2_auto2)} kg di CO₂ all'anno
-"""
-
-st.markdown(f'<p class="stText">{riepilogo_testuale}</p>', unsafe_allow_html=True)
+st.write(f"**{modello_auto1} ({tipo_auto1})** - Costo annuo: **€{int(costo1):,}**, Emissioni: **{int(co2_1):,} kg CO₂/anno**")
+st.write(f"**{modello_auto2} ({tipo_auto2})** - Costo annuo: **€{int(costo2):,}**, Emissioni: **{int(co2_2):,} kg CO₂/anno**")
 
 # =============================
-# Grafico del costo cumulativo
+# Grafici interattivi con Plotly
 # =============================
-st.markdown('<h2 class="stSubtitle">📈 Confronto del Costo Cumulativo</h2>', unsafe_allow_html=True)
-
-anni_range = np.arange(0, 11)
-costo_totale_auto1 = costo_iniziale_auto1 + anni_range * costo_annuo_auto1
-costo_totale_auto2 = costo_iniziale_auto2 + anni_range * costo_annuo_auto2
-
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot(
-    anni_range, costo_totale_auto1,
-    label=f"{modello_auto1} ({tipo_auto1})",
-    color="#1f77b4", linestyle="-", linewidth=2, marker="o"
+# 1) Confronto Costi
+df_costi = pd.DataFrame({
+    "Auto": [f"{modello_auto1} ({tipo_auto1})", f"{modello_auto2} ({tipo_auto2})"],
+    "Costo annuo (€)": [costo1, costo2]
+})
+fig_costi = px.bar(
+    df_costi,
+    x="Auto",
+    y="Costo annuo (€)",
+    color="Auto",
+    text="Costo annuo (€)",
+    color_discrete_sequence=["#1ABC9C", "#34495E"]
 )
-ax.plot(
-    anni_range, costo_totale_auto2,
-    label=f"{modello_auto2} ({tipo_auto2})",
-    color="#ff7f0e", linestyle="-", linewidth=2, marker="s"
+fig_costi.update_layout(
+    title="Confronto Costi Annuali",
+    showlegend=False
 )
-ax.fill_between(
-    anni_range,
-    costo_totale_auto1,
-    costo_totale_auto2,
-    color="#f0f2f6",
-    alpha=0.3
+fig_costi.update_traces(texttemplate='%{text:.0f} €', textposition='outside')
+
+# 2) Confronto Emissioni
+df_emissioni = pd.DataFrame({
+    "Auto": [f"{modello_auto1} ({tipo_auto1})", f"{modello_auto2} ({tipo_auto2})"],
+    "Emissioni CO₂ (kg/anno)": [co2_1, co2_2]
+})
+fig_emissioni = px.bar(
+    df_emissioni,
+    x="Auto",
+    y="Emissioni CO₂ (kg/anno)",
+    color="Auto",
+    text="Emissioni CO₂ (kg/anno)",
+    color_discrete_sequence=["#1ABC9C", "#34495E"]
 )
-
-ax.set_xlabel("Anni di utilizzo", fontsize=12, color="#2C3E50")
-ax.set_ylabel("Costo Cumulativo (€)", fontsize=12, color="#2C3E50")
-ax.set_title("Confronto del Costo Cumulativo", fontsize=16, color="#2C3E50", pad=20)
-ax.legend(loc="upper left", fontsize=12)
-ax.grid(True, linestyle="--", alpha=0.5)
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-st.pyplot(fig)
-
-# =============================
-# Grafico delle emissioni di CO₂
-# =============================
-st.markdown('<h2 class="stSubtitle">🌍 Confronto delle Emissioni di CO₂</h2>', unsafe_allow_html=True)
-
-fig2, ax2 = plt.subplots(figsize=(8, 6))
-ax2.bar(
-    [f"{modello_auto1} ({tipo_auto1})", f"{modello_auto2} ({tipo_auto2})"],
-    [co2_auto1, co2_auto2],
-    color=["#1f77b4", "#ff7f0e"]
+fig_emissioni.update_layout(
+    title="Confronto Emissioni di CO₂",
+    showlegend=False
 )
-ax2.set_xlabel("Modello", fontsize=12, color="#2C3E50")
-ax2.set_ylabel("Emissioni di CO₂ (kg/anno)", fontsize=12, color="#2C3E50")
-ax2.set_title("Confronto delle Emissioni di CO₂", fontsize=16, color="#2C3E50", pad=20)
-ax2.grid(True, linestyle="--", alpha=0.5, axis="y")
-ax2.spines['top'].set_visible(False)
-ax2.spines['right'].set_visible(False)
-st.pyplot(fig2)
+fig_emissioni.update_traces(texttemplate='%{text:.0f} kg', textposition='outside')
 
-# Messaggio finale
-st.markdown(
-    '<p class="stText">⚡ <strong>Scegli la soluzione più efficiente e sostenibile!</strong> 🚀</p>',
-    unsafe_allow_html=True
-)
+# Visualizza i grafici in due colonne
+col_g1, col_g2 = st.columns(2)
+with col_g1:
+    st.plotly_chart(fig_costi, use_container_width=True)
+with col_g2:
+    st.plotly_chart(fig_emissioni, use_container_width=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<p class='description'>⚡ <strong>Scegli la soluzione più efficiente e sostenibile!</strong> 🚀</p>", unsafe_allow_html=True)
