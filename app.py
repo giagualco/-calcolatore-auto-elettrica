@@ -8,6 +8,39 @@ st.set_page_config(page_title="Confronto Auto Elettrica vs Termica", page_icon="
 # Titolo principale
 st.title("Confronto Auto Elettrica vs Termica")
 
+# Sezione per il caricamento dei file JSON da Google Takeout
+st.sidebar.header("Carica i file Google Takeout")
+uploaded_files = st.sidebar.file_uploader("Carica più file JSON", type=["json"], accept_multiple_files=True)
+
+# Variabili per il calcolo dei km annui e del tipo di percorso
+total_distance_km = None
+road_types = {"citta": 0, "extraurbano": 0, "autostrada": 0}
+
+# Elaborazione dei file caricati
+if uploaded_files:
+    total_distance_km = 0
+    for uploaded_file in uploaded_files:
+        data = json.load(uploaded_file)
+
+        # Estrazione dei segmenti di percorso
+        activity_segments = [obj['activitySegment'] for obj in data["timelineObjects"] if 'activitySegment' in obj]
+
+        # Sommare i chilometri percorsi e identificare il tipo di strada
+        for segment in activity_segments:
+            distance_km = segment.get('distance', 0) / 1000
+            activity_type = segment.get('activityType', '').lower()
+
+            total_distance_km += distance_km
+
+            if "highway" in activity_type or "motorway" in activity_type or "expressway" in activity_type:
+                road_types["autostrada"] += distance_km
+            elif "city" in activity_type or "urban" in activity_type:
+                road_types["citta"] += distance_km
+            else:
+                road_types["extraurbano"] += distance_km
+
+    st.sidebar.success(f"Dati caricati con successo! Totale km percorsi: {int(total_distance_km)} km")
+
 # Sezione per i dati del veicolo termico
 st.sidebar.header("Dati del veicolo termico")
 modello_termico = st.sidebar.text_input("Modello veicolo termico", value="Auto Termica")
@@ -27,13 +60,25 @@ prezzo_energia = st.sidebar.number_input("Prezzo energia elettrica (€/kWh)", v
 
 # Sezione per i dati di utilizzo
 st.sidebar.header("Dati di utilizzo")
-km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
+
+if total_distance_km is not None:
+    st.sidebar.text(f"Chilometraggio annuo calcolato: {int(total_distance_km)} km")
+    km_annui = int(total_distance_km)
+else:
+    km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
 
 # Distribuzione percentuale del tipo di percorso
 st.sidebar.header("Distribuzione del percorso (%)")
-perc_citta = st.sidebar.slider("Città", 0, 100, 30)
-perc_extraurbano = st.sidebar.slider("Strada Extraurbana", 0, 100, 50)
-perc_autostrada = 100 - perc_citta - perc_extraurbano
+if uploaded_files:
+    total_km = sum(road_types.values())
+    perc_citta = round((road_types["citta"] / total_km) * 100) if total_km > 0 else 30
+    perc_extraurbano = round((road_types["extraurbano"] / total_km) * 100) if total_km > 0 else 50
+    perc_autostrada = 100 - perc_citta - perc_extraurbano
+else:
+    perc_citta = st.sidebar.slider("Città", 0, 100, 30)
+    perc_extraurbano = st.sidebar.slider("Strada Extraurbana", 0, 100, 50)
+    perc_autostrada = 100 - perc_citta - perc_extraurbano
+
 st.sidebar.write(f"Autostrada: {perc_autostrada}%")
 
 # Coefficienti di consumo relativi al tipo di percorso
