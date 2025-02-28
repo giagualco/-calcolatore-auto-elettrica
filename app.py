@@ -194,9 +194,9 @@ costo_totale_auto1 = costo_iniziale_auto1 + anni_range * costo_annuo_auto1
 costo_totale_auto2 = costo_iniziale_auto2 + anni_range * costo_annuo_auto2
 
 fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot(anni_range, costo_totale_auto1, label=f"{modello_auto1}", color="#3498DB", linestyle="-", linewidth=2, marker="o")
-ax.plot(anni_range, costo_totale_auto2, label=f"{modello_auto2}", color="#E74C3C", linestyle="-", linewidth=2, marker="s")
-ax.fill_between(anni_range, costo_totale_auto1, costo_totale_auto2, color="#F0F2F6", alpha=0.3)
+ax.plot(anni_range, costo_totale_auto1, label=f"{modello_auto1}", color="#1f77b4", linestyle="-", linewidth=2, marker="o")
+ax.plot(anni_range, costo_totale_auto2, label=f"{modello_auto2}", color="#ff7f0e", linestyle="-", linewidth=2, marker="s")
+ax.fill_between(anni_range, costo_totale_auto1, costo_totale_auto2, color="#f0f2f6", alpha=0.3)
 ax.set_xlabel("Anni di utilizzo", fontsize=12, color="#2C3E50")
 ax.set_ylabel("Costo Cumulativo (€)", fontsize=12, color="#2C3E50")
 ax.set_title("Confronto del Costo Cumulativo", fontsize=16, color="#2C3E50", pad=20)
@@ -212,7 +212,7 @@ st.pyplot(fig)
 st.markdown('<h2 class="stSubtitle">🌍 Confronto delle Emissioni di CO₂</h2>', unsafe_allow_html=True)
 
 fig2, ax2 = plt.subplots(figsize=(8, 6))
-ax2.bar([modello_auto1, modello_auto2], [co2_auto1, co2_auto2], color=["#3498DB", "#E74C3C"])
+ax2.bar([modello_auto1, modello_auto2], [co2_auto1, co2_auto2], color=["#1f77b4", "#ff7f0e"])
 ax2.set_xlabel("Modello", fontsize=12, color="#2C3E50")
 ax2.set_ylabel("Emissioni di CO₂ (kg/anno)", fontsize=12, color="#2C3E50")
 ax2.set_title("Confronto delle Emissioni di CO₂", fontsize=16, color="#2C3E50", pad=20)
