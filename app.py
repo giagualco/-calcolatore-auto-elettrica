@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import json
 import plotly.graph_objects as go
+import requests
 
 # =============================
 # 1. Configurazione Streamlit & CSS
@@ -16,13 +17,13 @@ st.set_page_config(
 def load_custom_css():
     """
     Carica Google Fonts e regole CSS personalizzate,
-    includendo media queries per dispositivi mobili.
+    incluse media queries per dispositivi mobili.
     """
     css = """
     <style>
     /* Google Font: Roboto */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-
+    
     html, body, [class*="css"] {
         font-family: 'Roboto', sans-serif;
         background-color: #FFFFFF;
@@ -100,7 +101,35 @@ def load_custom_css():
 load_custom_css()
 
 # =============================
-# 2. Titolo e Link al Canale YouTube
+# 2. Funzione per ottenere i prezzi attuali dal CSV
+# =============================
+def get_current_prices():
+    """
+    Recupera i prezzi attuali di benzina, diesel ed energia elettrica
+    leggendo il CSV fornito dal Ministero.
+    Si assume che il CSV utilizzi il punto e virgola come separatore e che
+    contenga le colonne "Benzina" e "Diesel". Se non disponibile, ritorna valori di default.
+    """
+    url = "https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv"
+    try:
+        # Legge il CSV; in Italia è comune usare il punto e virgola come separatore
+        df = pd.read_csv(url, sep=";", encoding="utf-8")
+        # Seleziona l'ultima riga per ottenere i prezzi più recenti
+        latest = df.iloc[-1]
+        prezzo_benzina = float(latest["Benzina"])
+        prezzo_diesel = float(latest["Diesel"])
+        # Per l'energia elettrica non c'è dato nel CSV, quindi usiamo un default
+        prezzo_energia = 0.25
+        return prezzo_benzina, prezzo_diesel, prezzo_energia
+    except Exception as e:
+        st.error("Errore nel recuperare i prezzi attuali: " + str(e))
+        return 1.90, 1.80, 0.25
+
+# Otteniamo i prezzi correnti all'avvio dell'app
+prezzo_benzina_default, prezzo_diesel_default, prezzo_energia_default = get_current_prices()
+
+# =============================
+# 3. Titolo e Link al Canale YouTube
 # =============================
 st.markdown("<h1 class='main-title'>Configuratore Avanzato Auto</h1>", unsafe_allow_html=True)
 st.markdown(
@@ -113,7 +142,7 @@ st.markdown(
 )
 
 # =============================
-# 3. Sidebar: Dati per i Veicoli
+# 4. Sidebar: Dati per i Veicoli e Percentuali di Guida
 # =============================
 # --- Veicolo 1 ---
 st.sidebar.header("Dati del Veicolo 1")
@@ -147,23 +176,19 @@ else:
     consumo_extra2 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=12.0, step=0.1, format="%.1f", key="c_ext2")
     consumo_autostrada2 = st.sidebar.number_input("Autostrada (kWh/100km)", value=20.0, step=0.1, format="%.1f", key="c_aut2")
 
-# =============================
-# 4. Sidebar: Percentuali di Percorrenza & Costi Carburante/Energia
-# =============================
+# Percentuali di guida
 st.sidebar.header("Percentuali di Guida (%)")
-# I seguenti slider permettono di impostare le percentuali di percorrenza per urbano, extraurbano e autostrada.
 perc_urbano = st.sidebar.slider("Urbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=0.5, help="Inserisci la percentuale di guida in ambiente urbano.", key="perc_urb")
 perc_extra = st.sidebar.slider("Extraurbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=0.5, help="Inserisci la percentuale di guida in ambiente extraurbano.", key="perc_ext")
 perc_autostrada = st.sidebar.slider("Autostrada (%)", min_value=0.0, max_value=100.0, value=20.0, step=0.5, help="Inserisci la percentuale di guida in autostrada.", key="perc_aut")
 
-# Controllo che la somma delle percentuali sia esattamente 100%
 if (perc_urbano + perc_extra + perc_autostrada) != 100.0:
     st.sidebar.error(f"La somma delle percentuali è {perc_urbano + perc_extra + perc_autostrada}%. Deve essere esattamente 100%.")
 
 st.sidebar.header("Costi Carburante / Energia")
-prezzo_benzina = st.sidebar.number_input("Prezzo benzina (€/L)", value=1.90, step=0.01, format="%.2f", key="benzina")
-prezzo_diesel = st.sidebar.number_input("Prezzo diesel (€/L)", value=1.80, step=0.01, format="%.2f", key="diesel")
-prezzo_energia = st.sidebar.number_input("Prezzo energia elettrica (€/kWh)", value=0.25, step=0.01, format="%.2f", key="energia")
+prezzo_benzina = st.sidebar.number_input("Prezzo benzina (€/L)", value=prezzo_benzina_default, step=0.01, format="%.2f", key="benzina")
+prezzo_diesel = st.sidebar.number_input("Prezzo diesel (€/L)", value=prezzo_diesel_default, step=0.01, format="%.2f", key="diesel")
+prezzo_energia = st.sidebar.number_input("Prezzo energia elettrica (€/kWh)", value=prezzo_energia_default, step=0.01, format="%.2f", key="energia")
 
 st.sidebar.header("Dati di Utilizzo")
 km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
