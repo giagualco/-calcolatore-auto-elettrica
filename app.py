@@ -106,22 +106,20 @@ load_custom_css()
 def get_current_prices():
     """
     Recupera i prezzi attuali di benzina, diesel ed energia elettrica
-    leggendo il CSV fornito dal Ministero (con fallback se non disponibile).
+    leggendo il CSV (Mise). Se non disponibile, valori di default.
     """
-    url = "https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv"
+    url = "https://www.mise.gov.it/images/exportCSV/prezzo_alle_8.csv"
     try:
         df = pd.read_csv(url, sep=";", encoding="utf-8")
         latest = df.iloc[-1]
         prezzo_benzina = float(latest["Benzina"])
         prezzo_diesel = float(latest["Diesel"])
-        # Non esiste dato per l'elettrico, usiamo un default
-        prezzo_energia = 0.25
+        prezzo_energia = 0.25  # default
         return prezzo_benzina, prezzo_diesel, prezzo_energia
     except Exception as e:
         st.error("Errore nel recuperare i prezzi attuali: " + str(e))
         return 1.90, 1.80, 0.25
 
-# Carichiamo i prezzi all'avvio
 prezzo_benzina_default, prezzo_diesel_default, prezzo_energia_default = get_current_prices()
 
 # =============================
@@ -130,8 +128,8 @@ prezzo_benzina_default, prezzo_diesel_default, prezzo_energia_default = get_curr
 st.markdown("<h1 class='main-title'>Configuratore Avanzato Auto</h1>", unsafe_allow_html=True)
 st.markdown(
     '<p class="description">'
-    'Benvenuto! Confronta due veicoli (combustione o elettrici) considerando consumi specifici e calcola costi annui, '
-    'emissioni di CO₂ e break-even.<br>'
+    'Benvenuto! Confronta due veicoli (combustione o elettrici) inserendo un singolo valore WLTP, '
+    'analizza costi annui, emissioni di CO₂ e break-even.<br>'
     'Visita il mio <a class="youtube-link" href="https://www.youtube.com/@giagualco" target="_blank">Canale YouTube</a> '
     'per approfondimenti!</p>',
     unsafe_allow_html=True
@@ -145,151 +143,93 @@ unit_fuel = st.sidebar.selectbox("Unità per veicoli a combustione", ["L/100km",
 unit_electric = st.sidebar.selectbox("Unità per veicoli elettrici", ["kWh/100km", "km/kWh"], key="unit_electric")
 
 # =============================
-# 5. Sidebar: Dati delle Auto
+# 5. Sidebar: Dati delle Auto (WLTP unici)
 # =============================
 st.sidebar.header("Dati delle Auto")
 
-# --- Scelta se inserire un singolo consumo WLTP o consumi differenziati ---
-input_mode_auto1 = st.sidebar.radio(
-    "Auto 1 - Modalità di inserimento consumi",
-    ("WLTP singolo", "Consumi differenziati"),
-    key="input_mode_auto1"
-)
+# --- Auto 1 ---
+st.sidebar.markdown("**Auto 1**")
 tipo_auto1 = st.sidebar.selectbox("Tipo di auto 1", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="tipo_auto1")
 modello_auto1 = st.sidebar.text_input("Modello auto 1", value="Auto 1", key="modello_auto1")
 costo_iniziale_auto1 = st.sidebar.number_input("Prezzo d'acquisto (€)", value=25000, step=1000, format="%d", key="costo_iniziale1")
 
-# --- Auto 1: lettura consumi ---
-if input_mode_auto1 == "WLTP singolo":
-    # Se WLTP singolo, usiamo un solo input, uguale per tutti i contesti
-    if tipo_auto1 in ["Benzina", "Diesel", "Ibrido"]:
-        if unit_fuel == "L/100km":
-            wltp_auto1 = st.sidebar.number_input("Consumo WLTP (L/100km)", value=6.0, step=0.1, format="%.1f", key="wltp1")
-            consumo_urbano1 = wltp_auto1
-            consumo_extra1 = wltp_auto1
-            consumo_autostrada1 = wltp_auto1
-        else:
-            wltp_auto1_kml = st.sidebar.number_input("Consumo WLTP (km/l)", value=15.0, step=0.1, format="%.1f", key="wltp1")
-            # Converto km/l in L/100km
-            consumo_base = 100 / wltp_auto1_kml if wltp_auto1_kml > 0 else 0
-            consumo_urbano1 = consumo_base
-            consumo_extra1 = consumo_base
-            consumo_autostrada1 = consumo_base
+if tipo_auto1 in ["Benzina", "Diesel", "Ibrido"]:
+    if unit_fuel == "L/100km":
+        wltp1 = st.sidebar.number_input("Consumo WLTP (L/100km)", value=6.0, step=0.1, format="%.1f", key="wltp_auto1")
+        # Tutti i contesti = WLTP
+        consumo_urbano1 = wltp1
+        consumo_extra1 = wltp1
+        consumo_autostrada1 = wltp1
     else:
-        # Elettrico
-        if unit_electric == "kWh/100km":
-            wltp_auto1 = st.sidebar.number_input("Consumo WLTP (kWh/100km)", value=16.0, step=0.1, format="%.1f", key="wltp1")
-            consumo_urbano1 = wltp_auto1
-            consumo_extra1 = wltp_auto1
-            consumo_autostrada1 = wltp_auto1
-        else:
-            wltp_auto1_kmkwh = st.sidebar.number_input("Consumo WLTP (km/kWh)", value=4.0, step=0.1, format="%.1f", key="wltp1")
-            consumo_base = 100 / wltp_auto1_kmkwh if wltp_auto1_kmkwh > 0 else 0
-            consumo_urbano1 = consumo_base
-            consumo_extra1 = consumo_base
-            consumo_autostrada1 = consumo_base
-
+        wltp1_kml = st.sidebar.number_input("Consumo WLTP (km/l)", value=15.0, step=0.1, format="%.1f", key="wltp_auto1")
+        base_1 = 100 / wltp1_kml if wltp1_kml > 0 else 0
+        consumo_urbano1 = base_1
+        consumo_extra1 = base_1
+        consumo_autostrada1 = base_1
 else:
-    # Consumi differenziati
-    if tipo_auto1 in ["Benzina", "Diesel", "Ibrido"]:
-        if unit_fuel == "L/100km":
-            consumo_urbano1 = st.sidebar.number_input("Urbano (L/100km)", value=7.0, step=0.1, format="%.1f", key="c_urb1")
-            consumo_extra1 = st.sidebar.number_input("Extraurbano (L/100km)", value=5.5, step=0.1, format="%.1f", key="c_ext1")
-            consumo_autostrada1 = st.sidebar.number_input("Autostrada (L/100km)", value=6.5, step=0.1, format="%.1f", key="c_aut1")
-        else:
-            c_urb1_kml = st.sidebar.number_input("Urbano (km/l)", value=15.0, step=0.1, format="%.1f", key="c_urb1")
-            c_ext1_kml = st.sidebar.number_input("Extraurbano (km/l)", value=17.0, step=0.1, format="%.1f", key="c_ext1")
-            c_aut1_kml = st.sidebar.number_input("Autostrada (km/l)", value=13.0, step=0.1, format="%.1f", key="c_aut1")
-            consumo_urbano1 = 100 / c_urb1_kml if c_urb1_kml > 0 else 0
-            consumo_extra1 = 100 / c_ext1_kml if c_ext1_kml > 0 else 0
-            consumo_autostrada1 = 100 / c_aut1_kml if c_aut1_kml > 0 else 0
+    # Elettrico
+    if unit_electric == "kWh/100km":
+        wltp1 = st.sidebar.number_input("Consumo WLTP (kWh/100km)", value=16.0, step=0.1, format="%.1f", key="wltp_auto1")
+        consumo_urbano1 = wltp1
+        consumo_extra1 = wltp1
+        consumo_autostrada1 = wltp1
     else:
-        # Elettrico
-        if unit_electric == "kWh/100km":
-            consumo_urbano1 = st.sidebar.number_input("Urbano (kWh/100km)", value=16.0, step=0.1, format="%.1f", key="c_urb1")
-            consumo_extra1 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=13.0, step=0.1, format="%.1f", key="c_ext1")
-            consumo_autostrada1 = st.sidebar.number_input("Autostrada (kWh/100km)", value=18.0, step=0.1, format="%.1f", key="c_aut1")
-        else:
-            c_urb1_kmkwh = st.sidebar.number_input("Urbano (km/kWh)", value=4.0, step=0.1, format="%.1f", key="c_urb1")
-            c_ext1_kmkwh = st.sidebar.number_input("Extraurbano (km/kWh)", value=5.0, step=0.1, format="%.1f", key="c_ext1")
-            c_aut1_kmkwh = st.sidebar.number_input("Autostrada (km/kWh)", value=3.5, step=0.1, format="%.1f", key="c_aut1")
-            consumo_urbano1 = 100 / c_urb1_kmkwh if c_urb1_kmkwh > 0 else 0
-            consumo_extra1 = 100 / c_ext1_kmkwh if c_ext1_kmkwh > 0 else 0
-            consumo_autostrada1 = 100 / c_aut1_kmkwh if c_aut1_kmkwh > 0 else 0
+        wltp1_kmkwh = st.sidebar.number_input("Consumo WLTP (km/kWh)", value=4.0, step=0.1, format="%.1f", key="wltp_auto1")
+        base_1 = 100 / wltp1_kmkwh if wltp1_kmkwh > 0 else 0
+        consumo_urbano1 = base_1
+        consumo_extra1 = base_1
+        consumo_autostrada1 = base_1
 
 # --- Auto 2 ---
-input_mode_auto2 = st.sidebar.radio(
-    "Auto 2 - Modalità di inserimento consumi",
-    ("WLTP singolo", "Consumi differenziati"),
-    key="input_mode_auto2"
-)
+st.sidebar.markdown("**Auto 2**")
 tipo_auto2 = st.sidebar.selectbox("Tipo di auto 2", ["Benzina", "Diesel", "Ibrido", "Elettrico"], key="tipo_auto2")
 modello_auto2 = st.sidebar.text_input("Modello auto 2", value="Auto 2", key="modello_auto2")
 costo_iniziale_auto2 = st.sidebar.number_input("Prezzo d'acquisto (€)", value=35000, step=1000, format="%d", key="costo_iniziale2")
 
-if input_mode_auto2 == "WLTP singolo":
-    if tipo_auto2 in ["Benzina", "Diesel", "Ibrido"]:
-        if unit_fuel == "L/100km":
-            wltp_auto2 = st.sidebar.number_input("Consumo WLTP (L/100km)", value=6.5, step=0.1, format="%.1f", key="wltp2")
-            consumo_urbano2 = wltp_auto2
-            consumo_extra2 = wltp_auto2
-            consumo_autostrada2 = wltp_auto2
-        else:
-            wltp_auto2_kml = st.sidebar.number_input("Consumo WLTP (km/l)", value=14.0, step=0.1, format="%.1f", key="wltp2")
-            base_2 = 100 / wltp_auto2_kml if wltp_auto2_kml > 0 else 0
-            consumo_urbano2 = base_2
-            consumo_extra2 = base_2
-            consumo_autostrada2 = base_2
+if tipo_auto2 in ["Benzina", "Diesel", "Ibrido"]:
+    if unit_fuel == "L/100km":
+        wltp2 = st.sidebar.number_input("Consumo WLTP (L/100km)", value=6.5, step=0.1, format="%.1f", key="wltp_auto2")
+        consumo_urbano2 = wltp2
+        consumo_extra2 = wltp2
+        consumo_autostrada2 = wltp2
     else:
-        if unit_electric == "kWh/100km":
-            wltp_auto2 = st.sidebar.number_input("Consumo WLTP (kWh/100km)", value=17.0, step=0.1, format="%.1f", key="wltp2")
-            consumo_urbano2 = wltp_auto2
-            consumo_extra2 = wltp_auto2
-            consumo_autostrada2 = wltp_auto2
-        else:
-            wltp_auto2_kmkwh = st.sidebar.number_input("Consumo WLTP (km/kWh)", value=3.8, step=0.1, format="%.1f", key="wltp2")
-            base_2 = 100 / wltp_auto2_kmkwh if wltp_auto2_kmkwh > 0 else 0
-            consumo_urbano2 = base_2
-            consumo_extra2 = base_2
-            consumo_autostrada2 = base_2
+        wltp2_kml = st.sidebar.number_input("Consumo WLTP (km/l)", value=14.0, step=0.1, format="%.1f", key="wltp_auto2")
+        base_2 = 100 / wltp2_kml if wltp2_kml > 0 else 0
+        consumo_urbano2 = base_2
+        consumo_extra2 = base_2
+        consumo_autostrada2 = base_2
 else:
-    # Consumi differenziati
-    if tipo_auto2 in ["Benzina", "Diesel", "Ibrido"]:
-        if unit_fuel == "L/100km":
-            consumo_urbano2 = st.sidebar.number_input("Urbano (L/100km)", value=7.5, step=0.1, format="%.1f", key="c_urb2")
-            consumo_extra2 = st.sidebar.number_input("Extraurbano (L/100km)", value=5.0, step=0.1, format="%.1f", key="c_ext2")
-            consumo_autostrada2 = st.sidebar.number_input("Autostrada (L/100km)", value=6.0, step=0.1, format="%.1f", key="c_aut2")
-        else:
-            c_urb2_kml = st.sidebar.number_input("Urbano (km/l)", value=14.0, step=0.1, format="%.1f", key="c_urb2")
-            c_ext2_kml = st.sidebar.number_input("Extraurbano (km/l)", value=16.0, step=0.1, format="%.1f", key="c_ext2")
-            c_aut2_kml = st.sidebar.number_input("Autostrada (km/l)", value=12.0, step=0.1, format="%.1f", key="c_aut2")
-            consumo_urbano2 = 100 / c_urb2_kml if c_urb2_kml > 0 else 0
-            consumo_extra2 = 100 / c_ext2_kml if c_ext2_kml > 0 else 0
-            consumo_autostrada2 = 100 / c_aut2_kml if c_aut2_kml > 0 else 0
+    if unit_electric == "kWh/100km":
+        wltp2 = st.sidebar.number_input("Consumo WLTP (kWh/100km)", value=17.0, step=0.1, format="%.1f", key="wltp_auto2")
+        consumo_urbano2 = wltp2
+        consumo_extra2 = wltp2
+        consumo_autostrada2 = wltp2
     else:
-        if unit_electric == "kWh/100km":
-            consumo_urbano2 = st.sidebar.number_input("Urbano (kWh/100km)", value=17.0, step=0.1, format="%.1f", key="c_urb2")
-            consumo_extra2 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=12.0, step=0.1, format="%.1f", key="c_ext2")
-            consumo_autostrada2 = st.sidebar.number_input("Autostrada (kWh/100km)", value=20.0, step=0.1, format="%.1f", key="c_aut2")
-        else:
-            c_urb2_kmkwh = st.sidebar.number_input("Urbano (km/kWh)", value=3.8, step=0.1, format="%.1f", key="c_urb2")
-            c_ext2_kmkwh = st.sidebar.number_input("Extraurbano (km/kWh)", value=4.5, step=0.1, format="%.1f", key="c_ext2")
-            c_aut2_kmkwh = st.sidebar.number_input("Autostrada (km/kWh)", value=3.2, step=0.1, format="%.1f", key="c_aut2")
-            consumo_urbano2 = 100 / c_urb2_kmkwh if c_urb2_kmkwh > 0 else 0
-            consumo_extra2 = 100 / c_ext2_kmkwh if c_ext2_kmkwh > 0 else 0
-            consumo_autostrada2 = 100 / c_aut2_kmkwh if c_aut2_kmkwh > 0 else 0
+        wltp2_kmkwh = st.sidebar.number_input("Consumo WLTP (km/kWh)", value=3.8, step=0.1, format="%.1f", key="wltp_auto2")
+        base_2 = 100 / wltp2_kmkwh if wltp2_kmkwh > 0 else 0
+        consumo_urbano2 = base_2
+        consumo_extra2 = base_2
+        consumo_autostrada2 = base_2
 
 # =============================
-# 6. Sidebar: Percentuali di Guida, Costi Carburante/Energia, Dati di Utilizzo
+# 6. Sidebar: Percentuali di Guida (2 slider) e Calcolo Autostrada
 # =============================
-st.sidebar.header("Percentuali di Guida (%)")
-perc_urbano = st.sidebar.slider("Urbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=0.5, key="perc_urb")
-perc_extra = st.sidebar.slider("Extraurbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=0.5, key="perc_ext")
-perc_autostrada = st.sidebar.slider("Autostrada (%)", min_value=0.0, max_value=100.0, value=20.0, step=0.5, key="perc_aut")
+st.sidebar.header("Percentuali di Guida")
 
-if (perc_urbano + perc_extra + perc_autostrada) != 100.0:
-    st.sidebar.error(f"La somma delle percentuali è {perc_urbano + perc_extra + perc_autostrada}%. Deve essere 100%.")
+perc_urbano = st.sidebar.slider("Urbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=1.0, key="perc_urb")
+perc_extra = st.sidebar.slider("Extraurbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=1.0, key="perc_ext")
 
+# Calcoliamo autostrada come differenza
+perc_autostrada = 100.0 - (perc_urbano + perc_extra)
+if perc_autostrada < 0:
+    st.sidebar.error("La somma di Urbano + Extraurbano supera il 100%. Riduci i valori.")
+    perc_autostrada = 0.0
+
+st.sidebar.write(f"**Autostrada:** {perc_autostrada:.1f}%")
+
+# =============================
+# 7. Sidebar: Costi Carburante/Energia e Dati di Utilizzo
+# =============================
 st.sidebar.header("Costi Carburante / Energia")
 prezzo_benzina = st.sidebar.number_input("Prezzo benzina (€/L)", value=prezzo_benzina_default, step=0.01, format="%.2f", key="benzina")
 prezzo_diesel = st.sidebar.number_input("Prezzo diesel (€/L)", value=prezzo_diesel_default, step=0.01, format="%.2f", key="diesel")
@@ -299,7 +239,7 @@ st.sidebar.header("Dati di Utilizzo")
 km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
 
 # =============================
-# 7. Caricamento File JSON (Google Takeout)
+# 8. Caricamento File JSON (Google Takeout) - opzionale
 # =============================
 st.sidebar.header("Carica File JSON (opzionale)")
 uploaded_files = st.sidebar.file_uploader("Seleziona uno o più file JSON", type=["json"], accept_multiple_files=True)
@@ -323,82 +263,71 @@ if uploaded_files:
         km_annui = int(total_distance_km)
 
 # =============================
-# 8. Funzioni di Calcolo
+# 9. Funzioni di Calcolo
 # =============================
 def fattore_co2(tipo_auto):
-    """
-    Ritorna il fattore di emissione (kg CO₂ per unità) per il tipo di veicolo.
-    """
     if tipo_auto == "Benzina":
         return 2.3
     elif tipo_auto == "Diesel":
         return 2.6
     elif tipo_auto == "Ibrido":
         return 2.0
-    else:  # Elettrico
+    else:
         return 0.5
 
-def prezzo_unita(tipo_auto, p_benz, p_diesel, p_energia):
-    """
-    Ritorna il prezzo unitario (€/L o €/kWh) in base al tipo di auto.
-    """
+def prezzo_unita(tipo_auto, p_benz, p_diesel, p_en):
     if tipo_auto in ["Benzina", "Ibrido"]:
         return p_benz
     elif tipo_auto == "Diesel":
         return p_diesel
     else:
-        return p_energia
+        return p_en
 
 def calcola_consumo_medio(cons_urb, cons_ext, cons_aut, perc_urb, perc_ext, perc_aut):
-    """
-    Calcola il consumo medio ponderato (L/100km o kWh/100km)
-    in base alle percentuali di percorrenza.
-    """
     tot = perc_urb + perc_ext + perc_aut
-    if tot == 0:
-        return (cons_urb + cons_ext + cons_aut) / 3
-    return cons_urb * (perc_urb / 100) + cons_ext * (perc_ext / 100) + cons_aut * (perc_aut / 100)
+    if tot <= 0:
+        return (cons_urb + cons_ext + cons_aut)/3.0
+    return (cons_urb * (perc_urb/100.0)
+            + cons_ext * (perc_ext/100.0)
+            + cons_aut * (perc_aut/100.0))
 
-def calcola_costi_ed_emissioni(tipo_auto, cons_urb, cons_ext, cons_aut, perc_urb, perc_ext, perc_aut,
-                                p_benz, p_die, p_en, km_annui):
-    """
-    Calcola il costo annuo e le emissioni annue (kg CO₂) per un veicolo,
-    considerando il consumo medio ponderato.
-    """
-    consumo_medio = calcola_consumo_medio(cons_urb, cons_ext, cons_aut, perc_urb, perc_ext, perc_aut)
+def calcola_costi_ed_emissioni(tipo_auto, cons_urb, cons_ext, cons_aut,
+                               perc_urb, perc_ext, perc_aut,
+                               p_benz, p_die, p_en, km):
+    consumo_medio = calcola_consumo_medio(cons_urb, cons_ext, cons_aut,
+                                          perc_urb, perc_ext, perc_aut)
     p_unitario = prezzo_unita(tipo_auto, p_benz, p_die, p_en)
     co2_factor = fattore_co2(tipo_auto)
-    costo_annuo = (km_annui / 100.0) * consumo_medio * p_unitario
-    co2_annua = (km_annui / 100.0) * consumo_medio * co2_factor
+
+    costo_annuo = (km/100.0) * consumo_medio * p_unitario
+    co2_annua = (km/100.0) * consumo_medio * co2_factor
     return costo_annuo, co2_annua
 
 def calcola_break_even(capex1, annuo1, capex2, annuo2):
-    """
-    Calcola in quanti anni si raggiunge il break-even tra due veicoli.
-    Restituisce il tempo di recupero (anni) se esiste, altrimenti None.
-    """
-    delta_capex = capex2 - capex1
+    delta_iniziale = capex2 - capex1
     delta_annuo = annuo1 - annuo2
-    if delta_capex > 0 and delta_annuo > 0:
-        return delta_capex / delta_annuo
-    delta_capex_bis = capex1 - capex2
+    if delta_iniziale > 0 and delta_annuo > 0:
+        return delta_iniziale/delta_annuo
+    delta_iniziale_bis = capex1 - capex2
     delta_annuo_bis = annuo2 - annuo1
-    if delta_capex_bis > 0 and delta_annuo_bis > 0:
-        return delta_capex_bis / delta_annuo_bis
+    if delta_iniziale_bis > 0 and delta_annuo_bis > 0:
+        return delta_iniziale_bis/delta_annuo_bis
     return None
 
 # =============================
-# 9. Calcoli Finali
+# 10. Calcoli Finali
 # =============================
 costo_annuo_auto1, co2_auto1 = calcola_costi_ed_emissioni(
-    tipo_auto1, consumo_urbano1, consumo_extra1, consumo_autostrada1,
+    tipo_auto1,
+    consumo_urbano1, consumo_extra1, consumo_autostrada1,
     perc_urbano, perc_extra, perc_autostrada,
     prezzo_benzina, prezzo_diesel, prezzo_energia,
     km_annui
 )
 
 costo_annuo_auto2, co2_auto2 = calcola_costi_ed_emissioni(
-    tipo_auto2, consumo_urbano2, consumo_extra2, consumo_autostrada2,
+    tipo_auto2,
+    consumo_urbano2, consumo_extra2, consumo_autostrada2,
     perc_urbano, perc_extra, perc_autostrada,
     prezzo_benzina, prezzo_diesel, prezzo_energia,
     km_annui
@@ -410,7 +339,7 @@ anni_pareggio = calcola_break_even(
 )
 
 # =============================
-# 10. Output Testuale
+# 11. Output Testuale
 # =============================
 st.subheader("Riepilogo del Confronto")
 
@@ -420,6 +349,7 @@ with col1:
     st.write(f"- **Costo iniziale:** €{int(costo_iniziale_auto1):,}")
     st.write(f"- **Costo annuo (ponderato):** €{int(costo_annuo_auto1):,}")
     st.write(f"- **Emissioni annue:** {int(co2_auto1):,} kg CO₂")
+
 with col2:
     st.write(f"**{modello_auto2} ({tipo_auto2})**")
     st.write(f"- **Costo iniziale:** €{int(costo_iniziale_auto2):,}")
@@ -432,17 +362,17 @@ else:
     st.warning("Non si raggiunge un break-even con i dati attuali o i costi sono equivalenti.")
 
 # =============================
-# 11. Grafico: Costo Cumulativo (10 anni)
+# 12. Grafico: Costo Cumulativo (10 anni)
 # =============================
 st.subheader("Confronto del Costo Cumulativo (10 anni)")
 
-anni = np.arange(0, 11)
-cumul_auto1 = [costo_iniziale_auto1 + anno * costo_annuo_auto1 for anno in anni]
-cumul_auto2 = [costo_iniziale_auto2 + anno * costo_annuo_auto2 for anno in anni]
+anni_range = np.arange(0, 11)
+cumul_auto1 = [costo_iniziale_auto1 + anno * costo_annuo_auto1 for anno in anni_range]
+cumul_auto2 = [costo_iniziale_auto2 + anno * costo_annuo_auto2 for anno in anni_range]
 
 fig_costi = go.Figure()
 fig_costi.add_trace(go.Scatter(
-    x=anni,
+    x=anni_range,
     y=cumul_auto1,
     mode='lines+markers',
     name=f"{modello_auto1} ({tipo_auto1})",
@@ -450,7 +380,7 @@ fig_costi.add_trace(go.Scatter(
     marker=dict(size=6)
 ))
 fig_costi.add_trace(go.Scatter(
-    x=anni,
+    x=anni_range,
     y=cumul_auto2,
     mode='lines+markers',
     name=f"{modello_auto2} ({tipo_auto2})",
@@ -467,7 +397,7 @@ fig_costi.update_layout(
 st.plotly_chart(fig_costi, use_container_width=True)
 
 # =============================
-# 12. Grafico: Emissioni Annue
+# 13. Grafico: Emissioni Annue
 # =============================
 st.subheader("Confronto delle Emissioni di CO₂ (annue)")
 
@@ -487,7 +417,7 @@ fig_emiss.update_layout(
 st.plotly_chart(fig_emiss, use_container_width=True)
 
 # =============================
-# 13. Conclusione
+# 14. Conclusione
 # =============================
 st.markdown(
     "<p class='description'>"
