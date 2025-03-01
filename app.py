@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import json
 import plotly.graph_objects as go
-import requests
 
 # =============================
 # 1. Configurazione Streamlit & CSS
@@ -16,7 +15,7 @@ st.set_page_config(
 
 def load_custom_css():
     """
-    Carica Google Fonts e regole CSS personalizzate,
+    Carica Google Fonts e regole CSS personalizzate, 
     incluse media queries per dispositivi mobili.
     """
     css = """
@@ -101,26 +100,14 @@ def load_custom_css():
 load_custom_css()
 
 # =============================
-# 2. Funzione per ottenere i prezzi attuali dal CSV ministeriale
+# 2. Prezzi Impostati dall'Utente (Default)
 # =============================
-def get_current_prices():
-    """
-    Recupera i prezzi attuali di benzina, diesel ed energia elettrica
-    leggendo il CSV (Mise). Se non disponibile, valori di default.
-    """
-    url = "https://www.mise.gov.it/images/exportCSV/prezzo_alle_8.csv"
-    try:
-        df = pd.read_csv(url, sep=";", encoding="utf-8")
-        latest = df.iloc[-1]
-        prezzo_benzina = float(latest["Benzina"])
-        prezzo_diesel = float(latest["Diesel"])
-        prezzo_energia = 0.25  # default
-        return prezzo_benzina, prezzo_diesel, prezzo_energia
-    except Exception as e:
-        st.error("Errore nel recuperare i prezzi attuali: " + str(e))
-        return 1.90, 1.80, 0.25
+# Ora non viene scaricato il CSV, i prezzi vengono impostati tramite input.
+# Valori di default: Benzina 1.90 €/L, Diesel 1.80 €/L, Energia 0.25 €/kWh.
 
-prezzo_benzina_default, prezzo_diesel_default, prezzo_energia_default = get_current_prices()
+prezzo_benzina_default = 1.90
+prezzo_diesel_default = 1.80
+prezzo_energia_default = 0.25
 
 # =============================
 # 3. Titolo e Link al Canale YouTube
@@ -143,7 +130,7 @@ unit_fuel = st.sidebar.selectbox("Unità per veicoli a combustione", ["L/100km",
 unit_electric = st.sidebar.selectbox("Unità per veicoli elettrici", ["kWh/100km", "km/kWh"], key="unit_electric")
 
 # =============================
-# 5. Sidebar: Dati delle Auto (WLTP unici)
+# 5. Sidebar: Dati delle Auto
 # =============================
 st.sidebar.header("Dati delle Auto")
 
@@ -156,7 +143,6 @@ costo_iniziale_auto1 = st.sidebar.number_input("Prezzo d'acquisto (€)", value=
 if tipo_auto1 in ["Benzina", "Diesel", "Ibrido"]:
     if unit_fuel == "L/100km":
         wltp1 = st.sidebar.number_input("Consumo WLTP (L/100km)", value=6.0, step=0.1, format="%.1f", key="wltp_auto1")
-        # Tutti i contesti = WLTP
         consumo_urbano1 = wltp1
         consumo_extra1 = wltp1
         consumo_autostrada1 = wltp1
@@ -167,7 +153,6 @@ if tipo_auto1 in ["Benzina", "Diesel", "Ibrido"]:
         consumo_extra1 = base_1
         consumo_autostrada1 = base_1
 else:
-    # Elettrico
     if unit_electric == "kWh/100km":
         wltp1 = st.sidebar.number_input("Consumo WLTP (kWh/100km)", value=16.0, step=0.1, format="%.1f", key="wltp_auto1")
         consumo_urbano1 = wltp1
@@ -212,19 +197,16 @@ else:
         consumo_autostrada2 = base_2
 
 # =============================
-# 6. Sidebar: Percentuali di Guida (2 slider) e Calcolo Autostrada
+# 6. Sidebar: Percentuali di Guida (Urbano ed Extraurbano; Autostrada è calcolato)
 # =============================
-st.sidebar.header("Percentuali di Guida")
-
+st.sidebar.header("Percentuali di Guida (%)")
 perc_urbano = st.sidebar.slider("Urbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=1.0, key="perc_urb")
 perc_extra = st.sidebar.slider("Extraurbano (%)", min_value=0.0, max_value=100.0, value=40.0, step=1.0, key="perc_ext")
-
-# Calcoliamo autostrada come differenza
+# Calcoliamo automaticamente la percentuale di Autostrada
 perc_autostrada = 100.0 - (perc_urbano + perc_extra)
 if perc_autostrada < 0:
-    st.sidebar.error("La somma di Urbano + Extraurbano supera il 100%. Riduci i valori.")
+    st.sidebar.error("La somma di Urbano ed Extraurbano supera il 100%. Riduci i valori.")
     perc_autostrada = 0.0
-
 st.sidebar.write(f"**Autostrada:** {perc_autostrada:.1f}%")
 
 # =============================
@@ -243,17 +225,12 @@ km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, ste
 # =============================
 st.sidebar.header("Carica File JSON (opzionale)")
 uploaded_files = st.sidebar.file_uploader("Seleziona uno o più file JSON", type=["json"], accept_multiple_files=True)
-
 if uploaded_files:
     total_distance_km = 0
     for uploaded_file in uploaded_files:
         try:
             data = json.load(uploaded_file)
-            activity_segments = [
-                obj['activitySegment']
-                for obj in data.get("timelineObjects", [])
-                if 'activitySegment' in obj
-            ]
+            activity_segments = [obj['activitySegment'] for obj in data.get("timelineObjects", []) if 'activitySegment' in obj]
             for segment in activity_segments:
                 total_distance_km += segment.get('distance', 0) / 1000
         except Exception as e:
@@ -286,32 +263,30 @@ def prezzo_unita(tipo_auto, p_benz, p_diesel, p_en):
 def calcola_consumo_medio(cons_urb, cons_ext, cons_aut, perc_urb, perc_ext, perc_aut):
     tot = perc_urb + perc_ext + perc_aut
     if tot <= 0:
-        return (cons_urb + cons_ext + cons_aut)/3.0
-    return (cons_urb * (perc_urb/100.0)
-            + cons_ext * (perc_ext/100.0)
-            + cons_aut * (perc_aut/100.0))
+        return (cons_urb + cons_ext + cons_aut) / 3.0
+    return (cons_urb * (perc_urb / 100.0)
+            + cons_ext * (perc_ext / 100.0)
+            + cons_aut * (perc_aut / 100.0))
 
 def calcola_costi_ed_emissioni(tipo_auto, cons_urb, cons_ext, cons_aut,
                                perc_urb, perc_ext, perc_aut,
                                p_benz, p_die, p_en, km):
-    consumo_medio = calcola_consumo_medio(cons_urb, cons_ext, cons_aut,
-                                          perc_urb, perc_ext, perc_aut)
+    consumo_medio = calcola_consumo_medio(cons_urb, cons_ext, cons_aut, perc_urb, perc_ext, perc_aut)
     p_unitario = prezzo_unita(tipo_auto, p_benz, p_die, p_en)
     co2_factor = fattore_co2(tipo_auto)
-
-    costo_annuo = (km/100.0) * consumo_medio * p_unitario
-    co2_annua = (km/100.0) * consumo_medio * co2_factor
+    costo_annuo = (km / 100.0) * consumo_medio * p_unitario
+    co2_annua = (km / 100.0) * consumo_medio * co2_factor
     return costo_annuo, co2_annua
 
 def calcola_break_even(capex1, annuo1, capex2, annuo2):
     delta_iniziale = capex2 - capex1
     delta_annuo = annuo1 - annuo2
     if delta_iniziale > 0 and delta_annuo > 0:
-        return delta_iniziale/delta_annuo
+        return delta_iniziale / delta_annuo
     delta_iniziale_bis = capex1 - capex2
     delta_annuo_bis = annuo2 - annuo1
     if delta_iniziale_bis > 0 and delta_annuo_bis > 0:
-        return delta_iniziale_bis/delta_annuo_bis
+        return delta_iniziale_bis / delta_annuo_bis
     return None
 
 # =============================
@@ -349,7 +324,6 @@ with col1:
     st.write(f"- **Costo iniziale:** €{int(costo_iniziale_auto1):,}")
     st.write(f"- **Costo annuo (ponderato):** €{int(costo_annuo_auto1):,}")
     st.write(f"- **Emissioni annue:** {int(co2_auto1):,} kg CO₂")
-
 with col2:
     st.write(f"**{modello_auto2} ({tipo_auto2})**")
     st.write(f"- **Costo iniziale:** €{int(costo_iniziale_auto2):,}")
