@@ -108,24 +108,20 @@ def get_current_prices():
     Recupera i prezzi attuali di benzina, diesel ed energia elettrica
     leggendo il CSV fornito dal Ministero.
     Si assume che il CSV utilizzi il punto e virgola come separatore e che
-    contenga le colonne "Benzina" e "Diesel". Se non disponibile, ritorna valori di default.
+    contenga le colonne "Benzina" e "Diesel". Per l'energia elettrica si usa un default.
     """
     url = "https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv"
     try:
-        # Legge il CSV; in Italia è comune usare il punto e virgola come separatore
         df = pd.read_csv(url, sep=";", encoding="utf-8")
-        # Seleziona l'ultima riga per ottenere i prezzi più recenti
         latest = df.iloc[-1]
         prezzo_benzina = float(latest["Benzina"])
         prezzo_diesel = float(latest["Diesel"])
-        # Per l'energia elettrica non c'è dato nel CSV, quindi usiamo un default
         prezzo_energia = 0.25
         return prezzo_benzina, prezzo_diesel, prezzo_energia
     except Exception as e:
         st.error("Errore nel recuperare i prezzi attuali: " + str(e))
         return 1.90, 1.80, 0.25
 
-# Otteniamo i prezzi correnti all'avvio dell'app
 prezzo_benzina_default, prezzo_diesel_default, prezzo_energia_default = get_current_prices()
 
 # =============================
@@ -142,7 +138,14 @@ st.markdown(
 )
 
 # =============================
-# 4. Sidebar: Dati per i Veicoli e Percentuali di Guida
+# 4. Sidebar: Impostazioni Unità di Misura
+# =============================
+st.sidebar.header("Impostazioni Unità di Misura")
+unit_fuel = st.sidebar.selectbox("Unità per veicoli a combustione", ["L/100km", "km/l"], key="unit_fuel")
+unit_electric = st.sidebar.selectbox("Unità per veicoli elettrici", ["kWh/100km", "km/kWh"], key="unit_electric")
+
+# =============================
+# 5. Sidebar: Dati per i Veicoli e Percentuali di Guida
 # =============================
 # --- Veicolo 1 ---
 st.sidebar.header("Dati del Veicolo 1")
@@ -152,13 +155,29 @@ costo_iniziale_auto1 = st.sidebar.number_input("Prezzo d'acquisto (€)", value=
 
 st.sidebar.subheader("Consumi per Veicolo 1")
 if tipo_auto1 in ["Benzina", "Diesel", "Ibrido"]:
-    consumo_urbano1 = st.sidebar.number_input("Urbano (L/100km)", value=7.0, step=0.1, format="%.1f", key="c_urb1")
-    consumo_extra1 = st.sidebar.number_input("Extraurbano (L/100km)", value=5.5, step=0.1, format="%.1f", key="c_ext1")
-    consumo_autostrada1 = st.sidebar.number_input("Autostrada (L/100km)", value=6.5, step=0.1, format="%.1f", key="c_aut1")
+    if unit_fuel == "L/100km":
+        consumo_urbano1 = st.sidebar.number_input("Urbano (L/100km)", value=7.0, step=0.1, format="%.1f", key="c_urb1")
+        consumo_extra1 = st.sidebar.number_input("Extraurbano (L/100km)", value=5.5, step=0.1, format="%.1f", key="c_ext1")
+        consumo_autostrada1 = st.sidebar.number_input("Autostrada (L/100km)", value=6.5, step=0.1, format="%.1f", key="c_aut1")
+    else:  # km/l
+        consumo_urbano_input = st.sidebar.number_input("Urbano (km/l)", value=15.0, step=0.1, format="%.1f", key="c_urb1")
+        consumo_extra_input = st.sidebar.number_input("Extraurbano (km/l)", value=17.0, step=0.1, format="%.1f", key="c_ext1")
+        consumo_autostrada_input = st.sidebar.number_input("Autostrada (km/l)", value=13.0, step=0.1, format="%.1f", key="c_aut1")
+        consumo_urbano1 = 100 / consumo_urbano_input if consumo_urbano_input > 0 else 0
+        consumo_extra1 = 100 / consumo_extra_input if consumo_extra_input > 0 else 0
+        consumo_autostrada1 = 100 / consumo_autostrada_input if consumo_autostrada_input > 0 else 0
 else:
-    consumo_urbano1 = st.sidebar.number_input("Urbano (kWh/100km)", value=16.0, step=0.1, format="%.1f", key="c_urb1")
-    consumo_extra1 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=13.0, step=0.1, format="%.1f", key="c_ext1")
-    consumo_autostrada1 = st.sidebar.number_input("Autostrada (kWh/100km)", value=18.0, step=0.1, format="%.1f", key="c_aut1")
+    if unit_electric == "kWh/100km":
+        consumo_urbano1 = st.sidebar.number_input("Urbano (kWh/100km)", value=16.0, step=0.1, format="%.1f", key="c_urb1")
+        consumo_extra1 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=13.0, step=0.1, format="%.1f", key="c_ext1")
+        consumo_autostrada1 = st.sidebar.number_input("Autostrada (kWh/100km)", value=18.0, step=0.1, format="%.1f", key="c_aut1")
+    else:  # km/kWh
+        consumo_urbano_input = st.sidebar.number_input("Urbano (km/kWh)", value=4.0, step=0.1, format="%.1f", key="c_urb1")
+        consumo_extra_input = st.sidebar.number_input("Extraurbano (km/kWh)", value=5.0, step=0.1, format="%.1f", key="c_ext1")
+        consumo_autostrada_input = st.sidebar.number_input("Autostrada (km/kWh)", value=3.5, step=0.1, format="%.1f", key="c_aut1")
+        consumo_urbano1 = 100 / consumo_urbano_input if consumo_urbano_input > 0 else 0
+        consumo_extra1 = 100 / consumo_extra_input if consumo_extra_input > 0 else 0
+        consumo_autostrada1 = 100 / consumo_autostrada_input if consumo_autostrada_input > 0 else 0
 
 # --- Veicolo 2 ---
 st.sidebar.header("Dati del Veicolo 2")
@@ -168,13 +187,29 @@ costo_iniziale_auto2 = st.sidebar.number_input("Prezzo d'acquisto (€)", value=
 
 st.sidebar.subheader("Consumi per Veicolo 2")
 if tipo_auto2 in ["Benzina", "Diesel", "Ibrido"]:
-    consumo_urbano2 = st.sidebar.number_input("Urbano (L/100km)", value=7.5, step=0.1, format="%.1f", key="c_urb2")
-    consumo_extra2 = st.sidebar.number_input("Extraurbano (L/100km)", value=5.0, step=0.1, format="%.1f", key="c_ext2")
-    consumo_autostrada2 = st.sidebar.number_input("Autostrada (L/100km)", value=6.0, step=0.1, format="%.1f", key="c_aut2")
+    if unit_fuel == "L/100km":
+        consumo_urbano2 = st.sidebar.number_input("Urbano (L/100km)", value=7.5, step=0.1, format="%.1f", key="c_urb2")
+        consumo_extra2 = st.sidebar.number_input("Extraurbano (L/100km)", value=5.0, step=0.1, format="%.1f", key="c_ext2")
+        consumo_autostrada2 = st.sidebar.number_input("Autostrada (L/100km)", value=6.0, step=0.1, format="%.1f", key="c_aut2")
+    else:
+        consumo_urbano_input = st.sidebar.number_input("Urbano (km/l)", value=14.0, step=0.1, format="%.1f", key="c_urb2")
+        consumo_extra_input = st.sidebar.number_input("Extraurbano (km/l)", value=16.0, step=0.1, format="%.1f", key="c_ext2")
+        consumo_autostrada_input = st.sidebar.number_input("Autostrada (km/l)", value=12.0, step=0.1, format="%.1f", key="c_aut2")
+        consumo_urbano2 = 100 / consumo_urbano_input if consumo_urbano_input > 0 else 0
+        consumo_extra2 = 100 / consumo_extra_input if consumo_extra_input > 0 else 0
+        consumo_autostrada2 = 100 / consumo_autostrada_input if consumo_autostrada_input > 0 else 0
 else:
-    consumo_urbano2 = st.sidebar.number_input("Urbano (kWh/100km)", value=17.0, step=0.1, format="%.1f", key="c_urb2")
-    consumo_extra2 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=12.0, step=0.1, format="%.1f", key="c_ext2")
-    consumo_autostrada2 = st.sidebar.number_input("Autostrada (kWh/100km)", value=20.0, step=0.1, format="%.1f", key="c_aut2")
+    if unit_electric == "kWh/100km":
+        consumo_urbano2 = st.sidebar.number_input("Urbano (kWh/100km)", value=17.0, step=0.1, format="%.1f", key="c_urb2")
+        consumo_extra2 = st.sidebar.number_input("Extraurbano (kWh/100km)", value=12.0, step=0.1, format="%.1f", key="c_ext2")
+        consumo_autostrada2 = st.sidebar.number_input("Autostrada (kWh/100km)", value=20.0, step=0.1, format="%.1f", key="c_aut2")
+    else:
+        consumo_urbano_input = st.sidebar.number_input("Urbano (km/kWh)", value=3.8, step=0.1, format="%.1f", key="c_urb2")
+        consumo_extra_input = st.sidebar.number_input("Extraurbano (km/kWh)", value=4.5, step=0.1, format="%.1f", key="c_ext2")
+        consumo_autostrada_input = st.sidebar.number_input("Autostrada (km/kWh)", value=3.2, step=0.1, format="%.1f", key="c_aut2")
+        consumo_urbano2 = 100 / consumo_urbano_input if consumo_urbano_input > 0 else 0
+        consumo_extra2 = 100 / consumo_extra_input if consumo_extra_input > 0 else 0
+        consumo_autostrada2 = 100 / consumo_autostrada_input if consumo_autostrada_input > 0 else 0
 
 # Percentuali di guida
 st.sidebar.header("Percentuali di Guida (%)")
@@ -194,7 +229,7 @@ st.sidebar.header("Dati di Utilizzo")
 km_annui = st.sidebar.number_input("Chilometri annui percorsi", value=15000, step=500, format="%d")
 
 # =============================
-# 5. Caricamento File JSON (Google Takeout)
+# 6. Caricamento File JSON (Google Takeout)
 # =============================
 st.sidebar.header("Carica File JSON")
 uploaded_files = st.sidebar.file_uploader("Seleziona uno o più file JSON", type=["json"], accept_multiple_files=True)
@@ -218,7 +253,7 @@ if uploaded_files:
         km_annui = int(total_distance_km)
 
 # =============================
-# 6. Funzioni di Calcolo
+# 7. Funzioni di Calcolo
 # =============================
 def fattore_co2(tipo_auto):
     """
@@ -283,7 +318,7 @@ def calcola_break_even(capex1, annuo1, capex2, annuo2):
     return None
 
 # =============================
-# 7. Calcoli Finali
+# 8. Calcoli Finali
 # =============================
 costo_annuo_auto1, co2_auto1 = calcola_costi_ed_emissioni(
     tipo_auto1, consumo_urbano1, consumo_extra1, consumo_autostrada1,
@@ -303,7 +338,7 @@ anni_pareggio = calcola_break_even(costo_iniziale_auto1, costo_annuo_auto1,
                                     costo_iniziale_auto2, costo_annuo_auto2)
 
 # =============================
-# 8. Output Testuale
+# 9. Output Testuale
 # =============================
 st.subheader("Riepilogo del Confronto")
 
@@ -325,7 +360,7 @@ else:
     st.warning("Non si raggiunge un break-even con i dati attuali o i costi sono equivalenti.")
 
 # =============================
-# 9. Grafico: Costo Cumulativo (10 anni)
+# 10. Grafico: Costo Cumulativo (10 anni)
 # =============================
 st.subheader("Confronto del Costo Cumulativo (10 anni)")
 
@@ -360,7 +395,7 @@ fig_costi.update_layout(
 st.plotly_chart(fig_costi, use_container_width=True)
 
 # =============================
-# 10. Grafico: Emissioni Annue
+# 11. Grafico: Emissioni Annue
 # =============================
 st.subheader("Confronto delle Emissioni di CO₂ (annue)")
 
@@ -380,7 +415,7 @@ fig_emiss.update_layout(
 st.plotly_chart(fig_emiss, use_container_width=True)
 
 # =============================
-# 11. Conclusione
+# 12. Conclusione
 # =============================
 st.markdown(
     "<p class='description'>"
